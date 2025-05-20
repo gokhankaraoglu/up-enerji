@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@layer components {
+  .card-item {
+    @apply gap-x-6 rounded-md min-w-48 hover:bg-gray-300;
+  }
+  .card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.5rem;
+    padding: 0.25rem;
+  }
+}

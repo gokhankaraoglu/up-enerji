@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@layer components {
+  .btn {
+    height: 57px;
+    padding: 0 50px;
+    background-color: var(--base-button-background-color);
+    color: var(--base-color-primary);
+    border-radius: var(--base-button-border-radius);
+    font-size: 18px;
+    border: none;
+    transition: all 0.2s;
+    font-weight: 300;
+    max-width: 345px;
+    width: 100%;
+  }
+
+  .btn:hover {
+    background-color: var(--base-button-background-color-hover);
+  }
+  .saturated {
+    background-color: var(--saturated-background-color);
+    border: 1px solid var(--saturated-border-color);
+    color: var(--saturated-color);
+  }
+
+  .saturated:hover {
+    background-color: var(--saturated-background-color-hover);
+    border-color: var(--saturated-border-color-hover);
+  }
+}

@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer components {
+  .select-wrapper {
+    margin-bottom: 1.75rem;
+    position: relative;
+  }
+
+  .select-area {
+    height: var(--base-input-height);
+    border-radius: var(--base-input-border-radius);
+    border: 1px solid var(--base-input-border-color);
+    transition: all 0.05s;
+    padding: 0.5rem 0.75rem;
+    font-weight: inherit;
+    line-height: inherit;
+    width: 100%;
+
+    &::placeholder {
+      color: transparent;
+    }
+    &:focus::placeholder {
+      color: var(--base-placeholder-color);
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  .error-message {
+    color: rgb(243, 62, 119);
+    font-size: 12px;
+    margin-top: 1px;
+  }
+
+  .select-label {
+    align-items: center;
+    display: flex;
+    font-weight: 600;
+  }
+}
