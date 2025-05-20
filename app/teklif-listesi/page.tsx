@@ -70,7 +70,7 @@ function OfferList() {
               <Icon icon={Icons.ARROW_LEFT} />
             </span>
           </Link>
-          {!!offer ? (
+          {offer ? (
             <>
               <div className="mb-10 text-center">
                 {offer?.MARKA_TIP_AD ? (

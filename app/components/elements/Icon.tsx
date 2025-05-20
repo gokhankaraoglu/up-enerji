@@ -69,7 +69,7 @@ export const Icon = ({ icon, className }: IconProps) => {
 
   return (
     <span
-      dangerouslySetInnerHTML={{ __html: iconList[icon] }} // eslint-disable-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: iconList[icon] }}
       className={classNames(className, flipClass)}
     />
   );

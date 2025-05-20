@@ -1,4 +1,3 @@
-import { QueryKey } from "@tanstack/react-query";
 import { axiosClient } from "./axiosClient";
 
 interface BaseRequest {
@@ -7,12 +6,6 @@ interface BaseRequest {
 
 interface RequestWithPayload<P> extends BaseRequest {
   payload: P;
-}
-
-export interface UpdatePayload<P> {
-  id: number | string;
-  updates: Partial<P>;
-  additionalInvalidates?: QueryKey[];
 }
 
 // P = payload, R = ResponseType
