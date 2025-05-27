@@ -54,7 +54,7 @@ function ProductForm() {
       }
 
       try {
-        const { token } = await apiRequest<{ token: string }>({
+        const { accessToken } = await apiRequest<{ accessToken: string }>({
           path: "/User/Login",
           requestData: {
             Username: process.env.NEXT_PUBLIC_INSURELAB_USER,
@@ -65,7 +65,7 @@ function ProductForm() {
         const user = await apiRequest<User>({
           path: "/Insurance/GetUser",
           queryParams: { uniqueId },
-          authToken: token,
+          authToken: accessToken,
         });
 
         if (!user) {
