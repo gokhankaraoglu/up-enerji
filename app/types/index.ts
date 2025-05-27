@@ -35,3 +35,22 @@ declare global {
     };
   }
 }
+
+export type User = {
+  taxNumber: string;
+  identityNumber: string;
+  birthDate: string;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  returnCode: number;
+  returnMessage: string;
+  exceptionMessage: string;
+};
+
+export type Credentials = {
+  TCK: string;
+  DGMTAR: string;
+  CEPTEL: string;
+  EMAIL: string;
+};

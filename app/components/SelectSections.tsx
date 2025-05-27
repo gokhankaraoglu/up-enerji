@@ -26,7 +26,7 @@ function SelectSections({
     // case 76:
     case 105: // PLAKA NO
     case 106: // PLAKA NO
-    case 76: // PLAKA NO
+      // case 76: // ARAC YAKIT TIPI
       return (
         <CustomSelect
           id={questionID.toString()}

@@ -1,10 +1,11 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { Icon, Icons } from "./elements/Icon";
 import { contractText } from "../contracts";
 import Spinner from "./elements/Spinner";
 import Image from "next/image";
 import { EntegrasyonPoliceDurumID } from "../types/product";
-import { formatName } from "../utils";
+import { formatName, getSessionStorage } from "../utils";
 
 interface OfferItemProps {
   company: string;
@@ -15,6 +16,13 @@ interface OfferItemProps {
 }
 
 function OfferItem({ title, company, price, policeStatusId }: OfferItemProps) {
+  const [userVehicle, setUserVehicle] = useState<any>(null);
+
+  useEffect(() => {
+    const vehicle: any | undefined = getSessionStorage("vehicle");
+    setUserVehicle(vehicle);
+  }, []);
+
   return (
     <div className="rounded-xl max-w-[405px] w-full bg-white p-4 border-solid border-[1px] border-[#0F1827]">
       <div className="flex mb-3.5 w-full">
@@ -42,11 +50,23 @@ function OfferItem({ title, company, price, policeStatusId }: OfferItemProps) {
         <span className="ml-1">{formatName(company)} güvencesiyle</span>
       </p>
       <hr className="mb-2.5 mt-1.5 md:mb-3.5 md:mt-2.5 border-t-1 border-[#0F1827]" />
+      {userVehicle && (
+        <>
+          <div className="mb-3">
+            <p className="mb-2">{userVehicle.plate || "-"}</p>
+            <div className="flex gap-2 text-gray-600">
+              <span>{userVehicle.year || "-"}</span>
+              <span>{userVehicle.brand || "-"}</span>
+              <span>{userVehicle.model || "-"}</span>
+            </div>
+          </div>
+          <hr className="mb-2.5 mt-1.5 md:mb-3.5 md:mt-2.5 border-t-1 border-[#0F1827]" />
+        </>
+      )}
       <div>
-        {contractText.map(({ title, icon }, index) => (
+        {contractText.map(({ title }, index) => (
           <section className="mb-2 md:mb-3" key={index}>
             <div className="flex items-end text-[#667085]">
-              <Icon icon={icon} className="h-5 w-5" />
               <h2 className="ml-2 text-xs font-light">{title}</h2>
             </div>
           </section>

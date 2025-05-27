@@ -12,6 +12,7 @@ function ProductList() {
     const URUN_AD = searchParams.get("URUN_AD");
     const URUN_KOD = searchParams.get("URUN_KOD");
     const URUN_ID = searchParams.get("URUN_ID");
+    const uniqueId = searchParams.get("uniqueId");
 
     if (URUN_AD && URUN_KOD && URUN_ID) {
       setSessionStorage("product", {
@@ -26,7 +27,7 @@ function ProductList() {
         URUN_AD: "KASKO SİGORTASI",
       });
     }
-    router.push("/teklif-form");
+    router.push(`/teklif-form?uniqueId=${uniqueId}`);
   }, []);
 
   return <Loading />;

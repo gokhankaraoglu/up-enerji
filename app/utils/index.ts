@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IWalletData } from "../types";
+import { Credentials, IWalletData, User } from "../types";
 
 export function capitalize(str: string): string {
   return str
@@ -121,3 +121,15 @@ export function convertToISODate(dateString: string): string | null {
 
   return date.toLocaleDateString("en-CA");
 }
+
+export const userToCredentials = (user: User): Credentials => {
+  const phoneWithoutCountryCode = user.phoneNumber.startsWith("90")
+    ? user.phoneNumber.substring(2)
+    : user.phoneNumber;
+  return {
+    TCK: user.identityNumber,
+    DGMTAR: user.birthDate,
+    CEPTEL: phoneWithoutCountryCode,
+    EMAIL: user.email,
+  };
+};

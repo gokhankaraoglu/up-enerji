@@ -35,10 +35,9 @@ function InsuranceDetailDialog({
                 Koruma Kapsamları
               </p>
               <div className="flex flex-col gap-y-8 h-[calc(80vh-15rem)] overflow-y-auto">
-                {contractText.map(({ title, icon, description }, index) => (
+                {contractText.map(({ title, description }, index) => (
                   <section key={index}>
                     <div className="flex items-center text-[#667085] mb-2.5">
-                      <Icon icon={icon} />
                       <h2 className="ml-2 text-2xl font-semibold">{title}</h2>
                     </div>
                     <p className="text-black text-sm font-light">

@@ -132,12 +132,9 @@ export interface StoredPoliceItem {
   company: string;
   price: number;
   title: string;
-  brand: string;
-  model: string;
   entegrationId: number;
   entegrationKey: string;
   entegrationPoliceNo: string;
-  deviceValue: number;
 }
 
 export enum EntegrasyonPoliceDurumID {

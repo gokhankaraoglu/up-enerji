@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Icon, Icons } from "../components/elements/Icon";
 import CustomButton from "../components/elements/CustomButton";
 import { getSessionStorage } from "../utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StoredPoliceItem } from "../types/product";
 import Spinner from "../components/elements/Spinner";
@@ -13,6 +13,7 @@ import Offer from "../components/Offer";
 
 function SelectedOffer() {
   const router = useRouter();
+  const formikRef = useRef<any>(null);
   const [police, setPolice] = useState<StoredPoliceItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -42,7 +43,7 @@ function SelectedOffer() {
             </span>
           </Link>
           <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold">Sigorta Teklifi</h2>
+            <h2 className="text-2xl font-bold">Kasko Teklifi</h2>
             <p className="text-[#667085] font-extralight text-lg">
               Teklifin detayları aşağıdaki gibidir. Onaylayarak ödeme adımına
               geçebilirsiniz.
@@ -51,15 +52,14 @@ function SelectedOffer() {
           <div className="w-full flex flex-col justify-center items-center mb-2.5">
             {police ? (
               <Offer
+                formikRef={formikRef}
                 title={police?.title}
                 company={police?.company}
                 startDate={police?.startDate}
                 endDate={police?.endDate}
                 price={police?.price}
-                brand={police?.brand}
-                model={police?.model}
-                deviceValue={police?.deviceValue}
                 entegrationId={police?.entegrationId}
+                entegrationPoliceNo={police?.entegrationPoliceNo}
                 setIsProcessing={setIsProcessing}
               />
             ) : (
@@ -69,10 +69,13 @@ function SelectedOffer() {
         </div>
         <div className="flex flex-col justify-center items-center">
           <CustomButton
-            form="form2"
-            type="submit"
             className="mb-3.5"
             disabled={!police?.entegrationId || isProcessing}
+            onClick={() => {
+              if (formikRef.current) {
+                formikRef.current.handleSubmit();
+              }
+            }}
           >
             {isProcessing
               ? "Ödeme sayfasına yönlendiriliyorsunuz..."

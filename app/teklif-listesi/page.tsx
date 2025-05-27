@@ -73,22 +73,12 @@ function OfferList() {
           {offer ? (
             <>
               <div className="mb-10 text-center">
-                {offer?.MARKA_TIP_AD ? (
-                  <>
-                    <h2 className="text-2xl font-bold">
-                      {offer?.MARKA_TIP_AD}
-                    </h2>
-                    <p className="text-[#667085] font-extralight text-lg">
-                      {offer?.MARKA_TIP_AD} cihazınıza ait sigorta tekliflerini
-                      burada görüntüleyebilirsiniz.
-                    </p>
-                  </>
-                ) : (
+                {
                   <p className="text-[#667085] font-extralight text-lg">
-                    Cihazınıza ait sigorta tekliflerini burada
+                    Aracınıza ait kasko tekliflerini burada
                     görüntüleyebilirsiniz.
                   </p>
-                )}
+                }
               </div>
               <div className="w-full flex flex-col justify-center items-center gap-y-6 mb-6">
                 <OfferItem

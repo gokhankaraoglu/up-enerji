@@ -1,38 +1,43 @@
+"use client";
 import Cookies from "js-cookie";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { createExpirationDate, formatName } from "../utils";
+import { createExpirationDate, formatName, getSessionStorage } from "../utils";
 import { submitPolicyApprovalSecurePayment } from "../utils/api/payment";
 import { StoredPoliceItem } from "../types/product";
 import { GUID } from "../hooks/useSetGuid";
 import { useRouter } from "next/navigation";
 import InformationFormDialog from "../dialogs/InformationFormDialog";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { confirmationForm } from "../utils/validations";
 
-interface OfferProps
-  extends Omit<StoredPoliceItem, "entegrationPoliceNo" | "entegrationKey"> {
+interface OfferProps extends Omit<StoredPoliceItem, "entegrationKey"> {
   setIsProcessing?: React.Dispatch<React.SetStateAction<boolean>>;
+  formikRef: any;
 }
 
 function Offer({
+  formikRef,
   title,
   company,
   price,
   startDate,
   endDate,
-  brand,
-  model,
-  deviceValue,
   entegrationId,
+  entegrationPoliceNo,
   setIsProcessing,
 }: OfferProps) {
+  const [userVehicle, setUserVehicle] = useState<any>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const vehicle: any | undefined = getSessionStorage("vehicle");
+    setUserVehicle(vehicle);
+  }, []);
+
   const [showInformationForm, setShowInformationForm] = useState(false);
-  const [isAcceptedForm, setIsAcceptedForm] = useState(false);
 
-  async function handleSendForm(event: React.FormEvent) {
-    event.preventDefault();
-
+  async function handleSendForm() {
     const expirationDate = createExpirationDate(6);
     if (setIsProcessing) {
       setIsProcessing(true);
@@ -76,22 +81,28 @@ function Offer({
           </div>
         </div>
         <hr className="my-2 border-t-1 border-[#667085]" />
+        {userVehicle && (
+          <>
+            <div className="mb-3">
+              <p className="mb-2">{userVehicle.plate || "-"}</p>
+              <div className="flex gap-2 text-gray-600">
+                <span>{userVehicle.year || "-"}</span>
+                <span>{userVehicle.brand || "-"}</span>
+                <span>{userVehicle.model || "-"}</span>
+              </div>
+            </div>
+            <hr className="my-2 border-t-1 border-[#667085]" />
+          </>
+        )}
         <div className="text-sm text-[#0F1827]">
-          {/* <div>
-            <p className="font-light text-xs text-[#667085]">Sigortalı</p>
-            <p className="text-sm font-normal ">{brand ?? "-"}</p>
-          </div>
-          <hr className="my-2 border-t-1 border-[#667085]" /> */}
           <div>
-            <p className="font-light text-xs text-[#667085]">Cihaz Bilgileri</p>
-            <p className="text-sm font-normal">{`${formatName(brand ?? "-")} ${
-              formatName(model) ?? "-"
-            }`}</p>
+            <p className="font-light text-xs text-[#667085]">Poliçe No</p>
+            <p className="text-sm font-normal">{entegrationPoliceNo}</p>
           </div>
           <hr className="my-2 border-t-1 border-[#667085]" />
           <div>
-            <p className="font-light text-xs text-[#667085]">Cihaz Bedeli</p>
-            <p className="text-sm font-normal">₺{deviceValue ?? " -"}</p>
+            <p className="font-light text-xs text-[#667085]">Ürün Adı</p>
+            <p className="text-sm font-normal">{formatName(title)}</p>
           </div>
           <hr className="my-2 border-t-1 border-[#667085]" />
           <div>
@@ -103,53 +114,89 @@ function Offer({
             </p>
           </div>
         </div>
-        <form id="form2" onSubmit={handleSendForm} className="mt-2.5">
-          <div className="flex items-center mb-1.5">
-            <input
-              className="cursor-pointer"
-              type="checkbox"
-              id="declaration"
-              required
-            />
-            <label
-              htmlFor="declaration"
-              className="ml-2 text-xs font-extralight text-[#667085] cursor-pointer"
-            >
-              Ödeme adımına geçmek için hasarsızlık beyanını kabul ediniz.
-            </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              className="cursor-pointer"
-              required
-              checked={isAcceptedForm}
-              onChange={() => setIsAcceptedForm((prev) => !prev)}
-            />
-            <label className="ml-2 text-xs font-extralight text-[#667085]">
-              <span
-                className="cursor-pointer"
-                onClick={() => setIsAcceptedForm((prev) => !prev)}
-              >
-                Ödeme adımına geçmek için{" "}
-              </span>
-              <span
-                className="text-[#6941C6] underline cursor-pointer"
-                onClick={() => {
-                  setShowInformationForm(true);
-                }}
-              >
-                Sigorta Bilgilendirme Formunu
-              </span>{" "}
-              <span
-                className="cursor-pointer"
-                onClick={() => setIsAcceptedForm((prev) => !prev)}
-              >
-                kabul ediniz.
-              </span>
-            </label>
-          </div>
-        </form>
+        <Formik
+          innerRef={formikRef}
+          initialValues={{
+            declaration: false,
+            informationForm: false,
+          }}
+          validationSchema={confirmationForm}
+          onSubmit={() => {
+            handleSendForm();
+          }}
+        >
+          {({ values, setFieldValue }) => (
+            <Form className="mt-2.5">
+              <div className="flex flex-col items-start mb-1.5">
+                <div className="flex">
+                  <Field
+                    type="checkbox"
+                    id="declaration"
+                    name="declaration"
+                    className="cursor-pointer"
+                  />
+                  <label
+                    htmlFor="declaration"
+                    className="ml-2 text-xs font-extralight text-[#667085] cursor-pointer"
+                  >
+                    Ödeme adımına geçmek için hasarsızlık beyanını kabul ediniz.
+                  </label>
+                </div>
+                <ErrorMessage
+                  name="declaration"
+                  component="div"
+                  className="text-red-500 text-xs ml-6"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <div className="flex">
+                  <Field
+                    type="checkbox"
+                    id="informationForm"
+                    name="informationForm"
+                    className="cursor-pointer"
+                  />
+                  <label className="ml-2 text-xs font-extralight text-[#667085]">
+                    <span
+                      className="cursor-pointer"
+                      onClick={() =>
+                        setFieldValue(
+                          "informationForm",
+                          !values.informationForm
+                        )
+                      }
+                    >
+                      Ödeme adımına geçmek için{" "}
+                    </span>
+                    <span
+                      className="text-[#6941C6] underline cursor-pointer"
+                      onClick={() => setShowInformationForm(true)}
+                    >
+                      Sigorta Bilgilendirme Formunu
+                    </span>{" "}
+                    <span
+                      className="cursor-pointer"
+                      onClick={() =>
+                        setFieldValue(
+                          "informationForm",
+                          !values.informationForm
+                        )
+                      }
+                    >
+                      kabul ediniz.
+                    </span>
+                  </label>
+                </div>
+                <ErrorMessage
+                  name="informationForm"
+                  component="div"
+                  className="text-red-500 text-xs ml-6"
+                />
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
       <InformationFormDialog
         isOpen={showInformationForm}
@@ -157,7 +204,7 @@ function Offer({
           setShowInformationForm(false);
         }}
         confirm={() => {
-          setIsAcceptedForm(true);
+          formikRef.current.setFieldValue("informationForm", true);
           setShowInformationForm(false);
         }}
       />

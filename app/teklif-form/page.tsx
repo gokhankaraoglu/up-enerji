@@ -9,10 +9,12 @@ import {
   createExpirationDate,
   delay,
   getSessionStorage,
+  setSessionStorage,
+  userToCredentials,
 } from "../utils";
 import { setGuid } from "../hooks/useSetGuid";
 import { SoruListItem } from "../types/question";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ProductDetail } from "../types/product";
 import {
   fetchProductQuestions,
@@ -24,18 +26,59 @@ import Footer from "../components/Footer";
 import { ACCESS_TOKEN } from "../utils/api/axiosClient";
 import { Form, Formik, FormikProps } from "formik";
 import { FormElements } from "../types/form";
-import { validationSchema } from "../utils/validations";
+import { formValidation } from "../utils/validations";
+import { Credentials, User } from "../types";
+import { apiRequest } from "../utils/api";
 
 function ProductForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const uniqueId = searchParams.get("uniqueId");
+
   const [questions, setQuestions] = useState<SoruListItem[]>([]);
   const [policeGuid, setPoliceGuid] = useState<string>("");
+  const [credentialsDetail, setCredentialsDetail] = useState<
+    Record<string, string>
+  >({});
+
   const policeId = Cookies.get("policeId");
   const formikRef = useRef<FormikProps<typeof initialValues>>(null);
   let lastInsuranceDate: string | number | undefined = undefined;
 
   useEffect(() => {
     const productDetail = getSessionStorage<ProductDetail>("product");
+
+    const getUserInfo = async () => {
+      if (!uniqueId) {
+        return undefined;
+      }
+
+      try {
+        const { token } = await apiRequest<{ token: string }>({
+          path: "/User/Login",
+          requestData: {
+            Username: process.env.NEXT_PUBLIC_INSURELAB_USER,
+            Password: process.env.NEXT_PUBLIC_INSURELAB_PASSWORD,
+          },
+        });
+
+        const user = await apiRequest<User>({
+          path: "/Insurance/GetUser",
+          queryParams: { uniqueId },
+          authToken: token,
+        });
+
+        if (!user) {
+          return undefined;
+        }
+
+        const formattedUser = userToCredentials(user);
+        return formattedUser;
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        return undefined;
+      }
+    };
 
     const checkToken = async () => {
       const accessToken = Cookies.get(ACCESS_TOKEN);
@@ -57,8 +100,9 @@ function ProductForm() {
         newPoliceGuid,
         productDetail
       );
+      const fetchedUser = await getUserInfo();
 
-      await submitQuestions(fetchedQuestions, newPoliceGuid);
+      await submitQuestions(fetchedQuestions, newPoliceGuid, fetchedUser);
       setPoliceGuid(newPoliceGuid);
     };
 
@@ -67,16 +111,25 @@ function ProductForm() {
 
   const submitQuestions = async (
     questions: SoruListItem[],
-    policeGuid: string
+    policeGuid: string,
+    credentials?: Credentials
   ) => {
+    if (credentials) {
+      setCredentialsDetail(credentials);
+    }
     const answerMapping: { [key: number]: string | undefined } = {
       49: "34",
       50: "1183",
+      76: "BENZİN",
+      14: credentials?.TCK,
+      44: credentials?.DGMTAR,
+      42: credentials?.CEPTEL,
+      77: credentials?.EMAIL,
     };
 
     for (const question of questions) {
       const answer = answerMapping[question.SORU_ID];
-      if (answer !== undefined) {
+      if (answer) {
         try {
           await submitQuestionAnswerMethod(policeGuid, question, answer);
         } catch (error) {
@@ -88,6 +141,20 @@ function ProductForm() {
       }
     }
   };
+
+  function setVehicleData(updatedQuestions: SoruListItem[]) {
+    const plate = updatedQuestions.find((item) => item.SORU_ID === 5);
+    const year = updatedQuestions.find((item) => item.SORU_ID === 3);
+    const brand = updatedQuestions.find((item) => item.SORU_ID === 1);
+    const model = updatedQuestions.find((item) => item.SORU_ID === 2);
+
+    setSessionStorage("vehicle", {
+      plate: plate?.DEGER_KOD,
+      year: year?.DEGER_AD,
+      brand: brand?.DEGER_AD,
+      model: model?.DEGER_AD,
+    });
+  }
 
   async function handleAnswerChange(
     question: SoruListItem,
@@ -128,6 +195,7 @@ function ProductForm() {
       const lastInsurance = updatedQuestions.find(
         (item) => item.SORU_ID === 83
       );
+
       if (lastInsurance?.DEGER_KOD) {
         lastInsuranceDate = lastInsurance?.DEGER_KOD;
         const lastInsuranceDateISO = convertToISODate(
@@ -146,9 +214,12 @@ function ProductForm() {
           21: lastInsuranceDateISO,
           22: oneYearLaterFromLastInsuranceDate,
         };
+
+        setVehicleData(updatedQuestions);
+
         for (const question of questions) {
           const answer = answerMapping[question.SORU_ID];
-          if (answer !== undefined) {
+          if (answer) {
             try {
               await submitQuestionAnswerMethod(policeGuid, question, answer);
             } catch (error) {
@@ -187,19 +258,17 @@ function ProductForm() {
     CEPTEL: "",
     EMAIL: "",
     PLK: "",
-    TESBELNO: "",
     ARCKULTIP: "",
     ARCKLS: "",
-    ARCYKTTIP: "",
   };
 
   return (
     <div className="min-w-[375px] max-w-[450px] mb-4 mt-7">
-      <div className="flex flex-col bg-white  rounded-xl">
+      <div className="flex flex-col bg-white rounded-xl">
         <div>
           <Formik
             initialValues={initialValues}
-            validationSchema={validationSchema}
+            validationSchema={formValidation}
             onSubmit={handleSendForm}
             enableReinitialize
             innerRef={formikRef}
@@ -213,6 +282,7 @@ function ProductForm() {
                         <FormElement
                           question={question}
                           key={question.SIRA_NO}
+                          value={credentialsDetail[question.SORU_KOD]}
                           onChange={(
                             event: ChangeEvent<
                               HTMLInputElement | HTMLSelectElement
@@ -262,18 +332,6 @@ function ProductForm() {
                   ) : (
                     <div className="mt-7 flex flex-col gap-6 items-center">
                       <div className="title-placeholder skeleton self-start "></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
                       <div className="title-placeholder skeleton self-start "></div>
                       <div className="input-placeholder skeleton"></div>
                       <div className="title-placeholder skeleton self-start "></div>

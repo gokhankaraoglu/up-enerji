@@ -118,7 +118,7 @@ function InputSections({
     case 205: // UZATILMIŞ GARANTİ
     case 206: // CİHAZ BEDELİ
     case 5: // PLAKA NO
-    case 30: // PLAKA NO
+      // case 30: // BELGE SERİ NO
       return (
         <CustomInput
           id={questionCode}
