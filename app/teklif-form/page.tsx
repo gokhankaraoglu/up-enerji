@@ -29,6 +29,8 @@ import { FormElements } from "../types/form";
 import { formValidation } from "../utils/validations";
 import { Credentials, User } from "../types";
 import { apiRequest } from "../utils/api";
+import React from "react";
+import LoadingPlaceholder from "../components/elements/LoadingPlaceholder";
 
 const initialValues: FormElements = {
   TCK: "",
@@ -56,6 +58,8 @@ function ProductForm() {
 
   const policeId = Cookies.get("policeId");
   const formikRef = useRef<FormikProps<typeof initialValues>>(null);
+  const lastVehicleUsageTypeAnswerRef = useRef<string | undefined>(undefined);
+
   let lastInsuranceDate: string | number | undefined = undefined;
 
   useEffect(() => {
@@ -166,19 +170,14 @@ function ProductForm() {
   };
 
   function setVehicleData(updatedQuestions: SoruListItem[]) {
-    const plate = updatedQuestions.find((item) => item.SORU_ID === 5);
-    const year = updatedQuestions.find((item) => item.SORU_ID === 3);
-    const brand = updatedQuestions.find((item) => item.SORU_ID === 1);
-    const model = updatedQuestions.find((item) => item.SORU_ID === 2);
-
-    if (plate || year || brand || model) {
-      setSessionStorage("vehicle", {
-        plate: plate?.DEGER_KOD,
-        year: year?.DEGER_AD,
-        brand: brand?.DEGER_AD,
-        model: model?.DEGER_AD,
-      });
-    }
+    const getById = (id: number) =>
+      updatedQuestions.find((item) => item.SORU_ID === id);
+    setSessionStorage("vehicle", {
+      plate: getById(5)?.DEGER_KOD,
+      year: getById(3)?.DEGER_AD,
+      brand: getById(1)?.DEGER_AD,
+      model: getById(2)?.DEGER_AD,
+    });
   }
 
   async function handleAnswerChange(
@@ -199,8 +198,6 @@ function ProductForm() {
 
     await submitQuestionAnswerMethod(policeGuid, question, value);
   }
-
-  const lastVehicleUsageTypeAnswerRef = useRef<string | undefined>(undefined);
 
   async function submitQuestionAnswerMethod(
     policeGuid: string,
@@ -342,6 +339,7 @@ function ProductForm() {
                             saturated={true}
                             className="mb-2.5"
                             onClick={goBackOffer}
+                            aria-label="Teklife Dön"
                           >
                             Teklife Dön
                           </CustomButton>
@@ -352,34 +350,20 @@ function ProductForm() {
                           }}
                           type="button"
                           className="mb-2.5"
+                          aria-label="Teklif Oluştur"
                         >
                           Teklif Oluştur
                         </CustomButton>
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-7 flex flex-col gap-6 items-center">
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                      <div className="title-placeholder skeleton self-start "></div>
-                      <div className="input-placeholder skeleton"></div>
-                    </div>
+                    <LoadingPlaceholder />
                   )}
                 </Form>
               );
             }}
           </Formik>
         </div>
-
         <Footer />
       </div>
     </div>

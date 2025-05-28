@@ -1,7 +1,10 @@
-import { ChangeEvent } from "react";
+/**
+ * Renders select fields for various question types with strict typing and accessibility.
+ */
+import React, { ChangeEvent, memo } from "react";
 import CustomSelect from "./elements/CustomSelect";
 
-interface SelectSectionsProps {
+export interface SelectSectionsProps {
   questionID: number;
   questionName: string;
   questionCode: string;
@@ -11,35 +14,33 @@ interface SelectSectionsProps {
   touched: boolean;
 }
 
-function SelectSections({
-  questionID,
-  questionName,
-  options,
-  onChange,
-  message,
-  touched,
-}: SelectSectionsProps) {
-  switch (questionID) {
-    // case 43:
-    // case 49:
-    // case 50:
-    // case 76:
-    case 105: // PLAKA NO
-      // case 106: // PLAKA NO
-      // case 76: // ARAC YAKIT TIPI
-      return (
-        <CustomSelect
-          id={questionID.toString()}
-          name={questionName}
-          options={options}
-          onChange={onChange}
-          message={message}
-          touched={touched}
-        />
-      );
-    default:
-      return null;
+const SelectSections: React.FC<SelectSectionsProps> = memo(
+  ({
+    questionID,
+    questionName,
+    questionCode,
+    options,
+    onChange,
+    message,
+    touched,
+  }) => {
+    switch (questionID) {
+      case 105: // PLAKA NO
+        return (
+          <CustomSelect
+            id={questionCode}
+            name={questionName}
+            options={options}
+            onChange={onChange}
+            message={message}
+            touched={touched}
+          />
+        );
+      default:
+        return null;
+    }
   }
-}
+);
+SelectSections.displayName = "SelectSections";
 
 export default SelectSections;
