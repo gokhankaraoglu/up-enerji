@@ -18,7 +18,6 @@ export const formValidation = Yup.object().shape({
     .required("Email zorunludur"),
   PLK: Yup.string().required("Plaka no zorunludur"),
   ARCKULTIP: Yup.string().required("Araç kullanım tipi zorunludur"),
-  ARCKLS: Yup.string().required("Araç kullanım şekli zorunludur"),
 });
 
 export const confirmationForm = Yup.object().shape({

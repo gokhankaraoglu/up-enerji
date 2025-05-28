@@ -5,7 +5,6 @@ export interface FormElements {
   EMAIL: string;
   PLK: string;
   ARCKULTIP: string;
-  ARCKLS: string;
 }
 
 export interface Credentials {

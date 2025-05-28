@@ -30,6 +30,15 @@ import { formValidation } from "../utils/validations";
 import { Credentials, User } from "../types";
 import { apiRequest } from "../utils/api";
 
+const initialValues: FormElements = {
+  TCK: "",
+  DGMTAR: "",
+  CEPTEL: "",
+  EMAIL: "",
+  PLK: "",
+  ARCKULTIP: "",
+};
+
 function ProductForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -113,26 +122,11 @@ function ProductForm() {
     checkToken();
   }, []);
 
-  const submitQuestions = async (
-    questions: SoruListItem[],
+  async function autoAnswerQuestions(
     policeGuid: string,
-    credentials?: Credentials
-  ) => {
-    if (credentials) {
-      setCredentialsDetail(credentials);
-    }
-    const answerMapping: { [key: number]: string | undefined } = {
-      49: "34",
-      50: "1183",
-      76: "BENZİN",
-      21: today,
-      22: oneYearLater,
-      14: credentials?.TCK,
-      44: credentials?.DGMTAR,
-      42: credentials?.CEPTEL,
-      77: credentials?.EMAIL,
-    };
-
+    questions: SoruListItem[],
+    answerMapping: { [key: number]: string | null }
+  ) {
     for (const question of questions) {
       const answer = answerMapping[question.SORU_ID];
       if (answer) {
@@ -146,6 +140,29 @@ function ProductForm() {
         }
       }
     }
+  }
+
+  const submitQuestions = async (
+    questions: SoruListItem[],
+    policeGuid: string,
+    credentials?: Credentials
+  ) => {
+    if (credentials) {
+      setCredentialsDetail(credentials);
+    }
+    const answerMapping: { [key: number]: string | null } = {
+      49: "34",
+      50: "1183",
+      76: "BENZİN",
+      21: today,
+      22: oneYearLater,
+      14: credentials?.TCK ?? null,
+      44: credentials?.DGMTAR ?? null,
+      42: credentials?.CEPTEL ?? null,
+      77: credentials?.EMAIL ?? null,
+    };
+
+    await autoAnswerQuestions(policeGuid, questions, answerMapping);
   };
 
   function setVehicleData(updatedQuestions: SoruListItem[]) {
@@ -183,6 +200,8 @@ function ProductForm() {
     await submitQuestionAnswerMethod(policeGuid, question, value);
   }
 
+  const lastVehicleUsageTypeAnswerRef = useRef<string | undefined>(undefined);
+
   async function submitQuestionAnswerMethod(
     policeGuid: string,
     question: SoruListItem,
@@ -198,6 +217,31 @@ function ProductForm() {
       question,
       value
     );
+
+    const vehicleUsageQuestion = updatedQuestions.find(
+      (item) => item.SORU_ID === 105
+    );
+    if (vehicleUsageQuestion?.DEGER_KOD) {
+      const vehicleUsage = vehicleUsageQuestion?.DEGER_KOD;
+
+      if (!vehicleUsage) return;
+
+      const vehicleUsageTypeQuestion = updatedQuestions.find(
+        (item) => item.SORU_ID === 106
+      );
+
+      if (!vehicleUsageTypeQuestion) return;
+      const [selectedVehicleUsageType] =
+        vehicleUsageTypeQuestion.SORU_DEGER_LIST;
+
+      const newAnswer = selectedVehicleUsageType?.DEGER_KOD;
+      if (newAnswer && lastVehicleUsageTypeAnswerRef.current !== newAnswer) {
+        lastVehicleUsageTypeAnswerRef.current = newAnswer;
+        await autoAnswerQuestions(policeGuid, questions, {
+          106: newAnswer,
+        });
+      }
+    }
 
     if (!lastInsuranceDate) {
       const lastInsurance = updatedQuestions.find(
@@ -218,24 +262,11 @@ function ProductForm() {
         );
         const oneYearLaterFromLastInsuranceDate =
           formattedLastInsuranceDate.toLocaleDateString("en-CA");
-        const answerMapping: { [key: number]: string | null } = {
+
+        await autoAnswerQuestions(policeGuid, questions, {
           21: lastInsuranceDateISO,
           22: oneYearLaterFromLastInsuranceDate,
-        };
-
-        for (const question of questions) {
-          const answer = answerMapping[question.SORU_ID];
-          if (answer) {
-            try {
-              await submitQuestionAnswerMethod(policeGuid, question, answer);
-            } catch (error) {
-              console.error(
-                `Error submitting question ID ${question.SORU_ID}:`,
-                error
-              );
-            }
-          }
-        }
+        });
       }
     }
     setVehicleData(updatedQuestions);
@@ -258,16 +289,6 @@ function ProductForm() {
   function goBackOffer() {
     router.push("/teklif-listesi");
   }
-
-  const initialValues: FormElements = {
-    TCK: "",
-    DGMTAR: "",
-    CEPTEL: "",
-    EMAIL: "",
-    PLK: "",
-    ARCKULTIP: "",
-    ARCKLS: "",
-  };
 
   return (
     <div className="min-w-[375px] max-w-[450px] mb-4 mt-7">

@@ -25,7 +25,7 @@ function SelectSections({
     // case 50:
     // case 76:
     case 105: // PLAKA NO
-    case 106: // PLAKA NO
+      // case 106: // PLAKA NO
       // case 76: // ARAC YAKIT TIPI
       return (
         <CustomSelect
