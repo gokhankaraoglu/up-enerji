@@ -53,8 +53,8 @@ function OfferItem({ title, company, price, policeStatusId }: OfferItemProps) {
       {userVehicle && (
         <>
           <div className="mb-3">
-            <p className="mb-2">{userVehicle.plate || "-"}</p>
-            <div className="flex gap-2 text-gray-600">
+            <p className="mb-2 text-[#667085]">{userVehicle.plate || "-"}</p>
+            <div className="flex gap-[3px] text-[#667085]">
               <span>{userVehicle.year || "-"}</span>
               <span>{userVehicle.brand || "-"}</span>
               <span>{userVehicle.model || "-"}</span>

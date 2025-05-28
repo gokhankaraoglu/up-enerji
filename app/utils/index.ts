@@ -28,7 +28,7 @@ export function formatName(name: string): string {
 
 export const setSessionStorage = <T>(key: string, value: T): void => {
   try {
-    const jsonValue = JSON.stringify(value);
+    const jsonValue = JSON.stringify(value || "");
     sessionStorage.setItem(key, jsonValue);
   } catch (error) {
     console.error(`Error saving to sessionStorage with key "${key}":`, error);

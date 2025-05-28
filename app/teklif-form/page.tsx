@@ -34,6 +34,10 @@ function ProductForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const uniqueId = searchParams.get("uniqueId");
+  const today = new Date().toLocaleDateString("en-CA");
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const oneYearLater = nextYear.toLocaleDateString("en-CA");
 
   const [questions, setQuestions] = useState<SoruListItem[]>([]);
   const [policeGuid, setPoliceGuid] = useState<string>("");
@@ -121,6 +125,8 @@ function ProductForm() {
       49: "34",
       50: "1183",
       76: "BENZİN",
+      21: today,
+      22: oneYearLater,
       14: credentials?.TCK,
       44: credentials?.DGMTAR,
       42: credentials?.CEPTEL,
@@ -148,12 +154,14 @@ function ProductForm() {
     const brand = updatedQuestions.find((item) => item.SORU_ID === 1);
     const model = updatedQuestions.find((item) => item.SORU_ID === 2);
 
-    setSessionStorage("vehicle", {
-      plate: plate?.DEGER_KOD,
-      year: year?.DEGER_AD,
-      brand: brand?.DEGER_AD,
-      model: model?.DEGER_AD,
-    });
+    if (plate || year || brand || model) {
+      setSessionStorage("vehicle", {
+        plate: plate?.DEGER_KOD,
+        year: year?.DEGER_AD,
+        brand: brand?.DEGER_AD,
+        model: model?.DEGER_AD,
+      });
+    }
   }
 
   async function handleAnswerChange(
@@ -215,8 +223,6 @@ function ProductForm() {
           22: oneYearLaterFromLastInsuranceDate,
         };
 
-        setVehicleData(updatedQuestions);
-
         for (const question of questions) {
           const answer = answerMapping[question.SORU_ID];
           if (answer) {
@@ -232,6 +238,7 @@ function ProductForm() {
         }
       }
     }
+    setVehicleData(updatedQuestions);
     setQuestions(updatedQuestions);
   }
 
