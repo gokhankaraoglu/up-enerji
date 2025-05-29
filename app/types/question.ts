@@ -33,7 +33,7 @@ export interface SoruListItem {
   SORU_TIP_ID: number;
   SORU_KOD: string;
   SORU_AD: string;
-  MASKE_TIP_ID: unknown;
+  MASKE_TIP_ID: number;
   SIRALAMA_TIP: unknown;
   GUNCELLEYEN: unknown;
   GUNCELLEME_TARIH: unknown;

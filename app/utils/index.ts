@@ -110,7 +110,6 @@ export function convertToISODate(dateString: string): string | null {
   const [day, month, year] = parts.map(Number);
   const date = new Date(year, month - 1, day);
 
-  // Geçersiz tarih kontrolü (örneğin 31/02/2023)
   if (
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||

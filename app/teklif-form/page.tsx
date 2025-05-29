@@ -28,9 +28,10 @@ import { Form, Formik, FormikProps } from "formik";
 import { FormElements } from "../types/form";
 import { formValidation } from "../utils/validations";
 import { Credentials, User } from "../types";
-import { apiRequest } from "../utils/api";
+import { getWithCustomBase } from "../utils/api";
 import React from "react";
 import LoadingPlaceholder from "../components/elements/LoadingPlaceholder";
+import { getDistrictCenterCode } from "../utils/cityDistrictCodes";
 
 const initialValues: FormElements = {
   TCK: "",
@@ -59,31 +60,23 @@ function ProductForm() {
   const policeId = Cookies.get("policeId");
   const formikRef = useRef<FormikProps<typeof initialValues>>(null);
   const lastVehicleUsageTypeAnswerRef = useRef<string | undefined>(undefined);
-
-  let lastInsuranceDate: string | number | undefined = undefined;
+  const lastInsuranceDateRef = {
+    current: undefined as string | number | undefined,
+  };
 
   useEffect(() => {
     const productDetail = getSessionStorage<ProductDetail>("product");
 
     const getUserInfo = async () => {
-      if (!uniqueId) {
+      if (!uniqueId || uniqueId === "null") {
         return undefined;
       }
 
       try {
-        const { token } = await apiRequest<{ token: string }>({
-          path: "/User/Login",
-          requestData: {
-            Username: process.env.NEXT_PUBLIC_INSURELAB_USER,
-            Password: process.env.NEXT_PUBLIC_INSURELAB_PASSWORD,
-          },
-        });
-
-        const user = await apiRequest<User>({
-          path: "/Insurance/GetUser",
-          queryParams: { uniqueId },
-          authToken: token,
-        });
+        const user = await getWithCustomBase<User>(
+          `/upenerji/user?uniqueId=${uniqueId}`,
+          process.env.NEXT_PUBLIC_FINSURETEXT_API_URL ?? ""
+        );
 
         if (!user) {
           return undefined;
@@ -197,6 +190,69 @@ function ProductForm() {
     setFieldValue(question.SORU_KOD, value);
 
     await submitQuestionAnswerMethod(policeGuid, question, value);
+
+    await handleSetCityasAuto();
+  }
+
+  function formatMaskedDate(value: string): string {
+    const [year, month, day] = value.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  async function handleVehicleUsageType(updatedQuestions: SoruListItem[]) {
+    const vehicleUsageQuestion = updatedQuestions.find(
+      (item) => item.SORU_ID === 105
+    );
+    if (vehicleUsageQuestion?.DEGER_KOD) {
+      const vehicleUsage = vehicleUsageQuestion.DEGER_KOD;
+      if (!vehicleUsage) return;
+      const vehicleUsageTypeQuestion = updatedQuestions.find(
+        (item) => item.SORU_ID === 106
+      );
+      if (!vehicleUsageTypeQuestion) return;
+      const [selectedVehicleUsageType] =
+        vehicleUsageTypeQuestion.SORU_DEGER_LIST;
+      const newAnswer = selectedVehicleUsageType?.DEGER_KOD;
+      if (newAnswer && lastVehicleUsageTypeAnswerRef.current !== newAnswer) {
+        lastVehicleUsageTypeAnswerRef.current = newAnswer;
+        await autoAnswerQuestions(policeGuid, questions, { 106: newAnswer });
+      }
+    }
+  }
+
+  async function handleLastInsuranceDate(updatedQuestions: SoruListItem[]) {
+    if (!lastInsuranceDateRef.current) {
+      const lastInsurance = updatedQuestions.find(
+        (item) => item.SORU_ID === 83
+      );
+      if (lastInsurance?.DEGER_KOD) {
+        lastInsuranceDateRef.current = lastInsurance.DEGER_KOD;
+        const lastInsuranceDateISO =
+          convertToISODate(lastInsurance.DEGER_KOD as string) ?? undefined;
+        if (!lastInsuranceDateISO) return;
+        const formattedLastInsuranceDate = new Date(lastInsuranceDateISO);
+        formattedLastInsuranceDate.setFullYear(
+          formattedLastInsuranceDate.getFullYear() + 1
+        );
+        const oneYearLaterFromLastInsuranceDate =
+          formattedLastInsuranceDate.toLocaleDateString("en-CA");
+        await autoAnswerQuestions(policeGuid, questions, {
+          21: lastInsuranceDateISO,
+          22: oneYearLaterFromLastInsuranceDate,
+        });
+      }
+    }
+  }
+
+  async function handleSetCityasAuto() {
+    const plate = questions.find((item) => item.SORU_ID === 5);
+    if (!plate?.DEGER_KOD) return;
+    const plateValue = (plate?.DEGER_KOD as string) || "";
+    const cityCodeStr = plateValue.substring(0, 2).replace(/^0+/, "");
+    await autoAnswerQuestions(policeGuid, questions, {
+      49: cityCodeStr,
+      50: getDistrictCenterCode(cityCodeStr) as string,
+    });
   }
 
   async function submitQuestionAnswerMethod(
@@ -206,66 +262,15 @@ function ProductForm() {
   ) {
     if (!value) return;
     if (question.MASKE_TIP_ID === 3) {
-      const [year, month, day] = (value as string).split("-");
-      value = `${day}/${month}/${year}`;
+      value = formatMaskedDate(value as string);
     }
     const updatedQuestions = await submitQuestionAnswer(
       policeGuid,
       question,
       value
     );
-
-    const vehicleUsageQuestion = updatedQuestions.find(
-      (item) => item.SORU_ID === 105
-    );
-    if (vehicleUsageQuestion?.DEGER_KOD) {
-      const vehicleUsage = vehicleUsageQuestion?.DEGER_KOD;
-
-      if (!vehicleUsage) return;
-
-      const vehicleUsageTypeQuestion = updatedQuestions.find(
-        (item) => item.SORU_ID === 106
-      );
-
-      if (!vehicleUsageTypeQuestion) return;
-      const [selectedVehicleUsageType] =
-        vehicleUsageTypeQuestion.SORU_DEGER_LIST;
-
-      const newAnswer = selectedVehicleUsageType?.DEGER_KOD;
-      if (newAnswer && lastVehicleUsageTypeAnswerRef.current !== newAnswer) {
-        lastVehicleUsageTypeAnswerRef.current = newAnswer;
-        await autoAnswerQuestions(policeGuid, questions, {
-          106: newAnswer,
-        });
-      }
-    }
-
-    if (!lastInsuranceDate) {
-      const lastInsurance = updatedQuestions.find(
-        (item) => item.SORU_ID === 83
-      );
-
-      if (lastInsurance?.DEGER_KOD) {
-        lastInsuranceDate = lastInsurance?.DEGER_KOD;
-        const lastInsuranceDateISO = convertToISODate(
-          lastInsurance?.DEGER_KOD as string
-        );
-
-        const formattedLastInsuranceDate = new Date(
-          lastInsuranceDateISO as string
-        );
-        formattedLastInsuranceDate.setFullYear(
-          formattedLastInsuranceDate.getFullYear() + 1
-        );
-        const oneYearLaterFromLastInsuranceDate =
-          formattedLastInsuranceDate.toLocaleDateString("en-CA");
-
-        await autoAnswerQuestions(policeGuid, questions, {
-          21: lastInsuranceDateISO,
-          22: oneYearLaterFromLastInsuranceDate,
-        });
-      }
-    }
+    await handleVehicleUsageType(updatedQuestions);
+    await handleLastInsuranceDate(updatedQuestions);
     setVehicleData(updatedQuestions);
     setQuestions(updatedQuestions);
   }
