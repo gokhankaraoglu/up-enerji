@@ -73,11 +73,11 @@ function ProductForm() {
       }
 
       try {
-        const user = await getWithCustomBase<User>(
+        const response = await getWithCustomBase<{ data: User }>(
           `/upenerji/user?uniqueId=${uniqueId}`,
           process.env.NEXT_PUBLIC_FINSURETEXT_API_URL ?? ""
         );
-
+        const user = response.data;
         if (!user) {
           return undefined;
         }

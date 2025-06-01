@@ -23,7 +23,7 @@ export async function getWithCustomBase<R>(
   path: string,
   baseURL: string
 ): Promise<R> {
-  const accessToken = process.env.NEXT_ACCESS_TOKEN;
+  const accessToken = process.env.NEXT_PUBLIC_ACCESS_TOKEN;
   const { data } = await axios.get<R>(path, {
     baseURL,
     headers: {
