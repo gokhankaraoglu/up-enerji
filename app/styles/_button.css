@@ -2,7 +2,7 @@
 
 @layer components {
   .btn {
-    @apply bg-blue-700 text-white hover:bg-blue-600 font-light;
+    @apply bg-blue-700 text-white hover:bg-blue-600 font-light cursor-pointer;
     height: 57px;
     padding: 0 50px;
     border-radius: var(--base-button-border-radius);

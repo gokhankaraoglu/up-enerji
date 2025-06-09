@@ -372,7 +372,6 @@ function ProductForm() {
                           {policeId && (
                             <CustomButton
                               type="button"
-                              saturated={true}
                               className="mb-2.5"
                               onClick={goBackOffer}
                               aria-label="Teklife Dön"
