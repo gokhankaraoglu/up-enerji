@@ -5,6 +5,7 @@ export interface PersonalFormElements {
   EMAIL: string;
   PLK: string;
   ARCKULTIP: string;
+  [key: string]: string;
 }
 
 export interface CorporateFormElements {
@@ -12,6 +13,7 @@ export interface CorporateFormElements {
   CEPTEL: string;
   EMAIL: string;
   PLK: string;
+  [key: string]: string;
 }
 
 export interface Credentials {

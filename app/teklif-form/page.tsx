@@ -63,9 +63,7 @@ function ProductForm() {
   const [questions, setQuestions] = useState<SoruListItem[]>([]);
   const [policeGuid, setPoliceGuid] = useState<string>("");
   const [userType, setUserType] = useState(UserType.Personal);
-  const [credentialsDetail, setCredentialsDetail] = useState<
-    Record<string, string>
-  >({});
+
   const [userInfo, setUserInfo] = useState<Credentials | undefined>(undefined);
   const [initialValuesState, setInitialValueState] = useState<
     PersonalFormElements | CorporateFormElements
@@ -93,7 +91,6 @@ function ProductForm() {
       const fetchedUser = await getUserInfo(uniqueId);
       setUserInfo(fetchedUser);
       if (fetchedUser) {
-        setCredentialsDetail(fetchedUser);
         if (fetchedUser.VKN) {
           setInitialValueState({ ...corporateInitialValues, ...fetchedUser });
           setUserType(UserType.Corporate);
@@ -325,7 +322,7 @@ function ProductForm() {
             enableReinitialize
             innerRef={formikRef}
           >
-            {({ errors, touched, setFieldValue }) => {
+            {({ values, errors, touched, setFieldValue }) => {
               return (
                 <Form autoComplete="off" className="p-5 md:p-10 !pb-5">
                   {questions.length > 0 ? (
@@ -342,7 +339,7 @@ function ProductForm() {
                             <FormElement
                               question={question}
                               key={question.SIRA_NO}
-                              value={credentialsDetail[question.SORU_KOD]}
+                              value={values[question.SORU_KOD]}
                               onChange={(
                                 event: ChangeEvent<
                                   HTMLInputElement | HTMLSelectElement

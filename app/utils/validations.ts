@@ -34,3 +34,12 @@ export const corporateFormValidation = Yup.object().shape({
     .required("Email zorunludur"),
   PLK: Yup.string().required("Plaka no zorunludur"),
 });
+
+export const confirmationForm = Yup.object().shape({
+  declaration: Yup.boolean()
+    .oneOf([true], "Hasarsızlık beyanını kabul etmelisiniz")
+    .required("Hasarsızlık beyanı zorunludur"),
+  informationForm: Yup.boolean()
+    .oneOf([true], "Sigorta Bilgilendirme Formunu kabul etmelisiniz")
+    .required("Sigorta Bilgilendirme Formu zorunludur"),
+});

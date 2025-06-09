@@ -24,53 +24,82 @@ function OfferItem({ title, company, price, policeStatusId }: OfferItemProps) {
   }, []);
 
   return (
-    <div className="rounded-xl max-w-[405px] w-full bg-white p-4 border-solid border-[1px] border-[#0F1827]">
-      <div className="flex mb-3.5 w-full">
-        <Image src="/axa-logo.png" alt="Axa logo" width="54" height="54" />
-        <div className="ml-3.5 flex flex-col justify-between">
-          <p className="text-base font-semibold">{formatName(title)}</p>
-          <div className="text-[#667085] text-lg font-extralight">
-            {EntegrasyonPoliceDurumID.TEKLIF === policeStatusId ? (
-              <span>₺{price}</span>
-            ) : EntegrasyonPoliceDurumID.BEKLIYOR === policeStatusId ? (
-              <Spinner />
-            ) : (
-              <p className="flex">
-                <span className="flex items-center text-4xl mr-2">
-                  &#128532;
+    <div className="rounded-2xl max-w-[405px] w-full bg-white border border-gray-200 shadow-sm overflow-hidden">
+      <div className="p-6 pb-4 border-b border-gray-100">
+        <div className="flex items-center mb-6">
+          <Image
+            src="/axa-logo.png"
+            alt="Axa logo"
+            width="112"
+            height="112"
+            className="rounded-full bg-white border border-gray-200"
+          />
+          <div className="ml-4 flex flex-col justify-center">
+            <span className="text-base font-medium">{formatName(title)}</span>
+            <span className="text-2xl font-bold  mt-1">
+              {EntegrasyonPoliceDurumID.TEKLIF === policeStatusId ? (
+                <>₺{price?.toLocaleString("tr-TR")}</>
+              ) : EntegrasyonPoliceDurumID.BEKLIYOR === policeStatusId ? (
+                <Spinner />
+              ) : (
+                <span className="flex items-center text-sm font-medium">
+                  <span className="flex items-center text-2xl mr-2">
+                    &#128532;
+                  </span>
+                  Bir hata oldu. Bilgileri kontrol ederek tekrar dene
                 </span>
-                <span>Bir hata oldu. Bilgileri kontrol ederek tekrar dene</span>
-              </p>
-            )}
+              )}
+            </span>
           </div>
         </div>
+        <div className="flex items-center font-light text-sm mb-2">
+          <Icon icon={Icons.INFO_ICON} />
+          <span className="ml-1">{formatName(company)} güvencesiyle</span>
+        </div>
       </div>
-      <p className="flex text-xs font-light text-[#667085] items-center">
-        <Icon icon={Icons.INFO_ICON} />
-        <span className="ml-1">{formatName(company)} güvencesiyle</span>
-      </p>
-      <hr className="mb-2.5 mt-1.5 md:mb-3.5 md:mt-2.5 border-t-1 border-[#0F1827]" />
-      {userVehicle && (
-        <>
-          <div className="mb-3">
-            <p className="mb-2 text-[#667085]">{userVehicle.plate || "-"}</p>
-            <div className="flex gap-[3px] text-[#667085]">
-              <span>{userVehicle.year || "-"}</span>
-              <span>{userVehicle.brand || "-"}</span>
-              <span>{userVehicle.model || "-"}</span>
-            </div>
-          </div>
-          <hr className="mb-2.5 mt-1.5 md:mb-3.5 md:mt-2.5 border-t-1 border-[#0F1827]" />
-        </>
-      )}
-      <div>
-        {contractText.map(({ title }, index) => (
-          <section className="mb-2 md:mb-3" key={index}>
-            <div className="flex items-end text-[#667085]">
-              <h2 className="ml-2 text-xs font-light">{title}</h2>
-            </div>
-          </section>
-        ))}
+      <div className="bg-gray-100 px-6 py-2 text-xs font-semibold  border-b border-gray-100">
+        ARAÇ BİLGİLERİ
+      </div>
+      <div className="px-6 py-3 border-b border-gray-100">
+        {userVehicle && (
+          <ul className="space-y-1">
+            <li className="flex items-center text-sm ">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-900 mr-2"></span>
+              <span>{userVehicle.plate || "-"}</span>
+            </li>
+            <li className="flex items-center text-sm ">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-900 mr-2"></span>
+              <span>
+                {userVehicle.year || "-"} {userVehicle.brand || "-"}{" "}
+                {userVehicle.model || "-"}
+              </span>
+            </li>
+          </ul>
+        )}
+      </div>
+
+      <div className="bg-gray-100 px-6 py-2 text-xs font-semibold  border-b border-gray-100">
+        TEMİNAT BİLGİLERİ
+      </div>
+      <div className="px-6 py-3">
+        <ul className="space-y-4">
+          {contractText.map(({ title, icon }, index) => (
+            <li key={index} className="flex items-center text-sm ">
+              {icon ? (
+                <Image
+                  src={`/${icon}`}
+                  alt={title}
+                  width={28}
+                  height={28}
+                  className="h-7 w-7 mr-2"
+                />
+              ) : (
+                <span className="inline-block w-5 mr-2"></span>
+              )}
+              <span className="font-medium">{title}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
