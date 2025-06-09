@@ -53,4 +53,5 @@ export type Credentials = {
   DGMTAR: string;
   CEPTEL: string;
   EMAIL: string;
+  VKN: string;
 };

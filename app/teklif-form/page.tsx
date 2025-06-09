@@ -10,7 +10,6 @@ import {
   delay,
   getSessionStorage,
   setSessionStorage,
-  userToCredentials,
 } from "../utils";
 import { setGuid } from "../hooks/useSetGuid";
 import { SoruListItem } from "../types/question";
@@ -25,27 +24,37 @@ import { normalizePhoneNumber, normalizeTCKN } from "../utils/mask";
 import Footer from "../components/Footer";
 import { ACCESS_TOKEN } from "../utils/api/axiosClient";
 import { Form, Formik, FormikProps } from "formik";
-import { FormElements } from "../types/form";
-import { formValidation } from "../utils/validations";
-import { Credentials, User } from "../types";
-import { getWithCustomBase } from "../utils/api";
+import { CorporateFormElements, PersonalFormElements } from "../types/form";
+import {
+  corporateFormValidation,
+  personalFormValidation,
+} from "../utils/validations";
+import { Credentials } from "../types";
 import React from "react";
 import LoadingPlaceholder from "../components/elements/LoadingPlaceholder";
 import { getDistrictCenterCode } from "../utils/cityDistrictCodes";
+import Toggle, { UserType } from "../components/elements/Toggle";
+import { getUserInfo } from "../utils/api/user";
 
-const initialValues: FormElements = {
+const personalInitialValues: PersonalFormElements = {
   TCK: "",
   DGMTAR: "",
   CEPTEL: "",
   EMAIL: "",
   PLK: "",
-  ARCKULTIP: "",
+  ARCKULTIP: "1",
+};
+const corporateInitialValues: CorporateFormElements = {
+  VKN: "",
+  CEPTEL: "",
+  EMAIL: "",
+  PLK: "",
 };
 
 function ProductForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const uniqueId = searchParams.get("uniqueId");
+  const uniqueId = searchParams.get("uniqueId") || null;
   const today = new Date().toLocaleDateString("en-CA");
   const nextYear = new Date();
   nextYear.setFullYear(nextYear.getFullYear() + 1);
@@ -53,42 +62,53 @@ function ProductForm() {
 
   const [questions, setQuestions] = useState<SoruListItem[]>([]);
   const [policeGuid, setPoliceGuid] = useState<string>("");
+  const [userType, setUserType] = useState(UserType.Personal);
   const [credentialsDetail, setCredentialsDetail] = useState<
     Record<string, string>
   >({});
+  const [userInfo, setUserInfo] = useState<Credentials | undefined>(undefined);
+  const [initialValuesState, setInitialValueState] = useState<
+    PersonalFormElements | CorporateFormElements
+  >(personalInitialValues);
 
   const policeId = Cookies.get("policeId");
-  const formikRef = useRef<FormikProps<typeof initialValues>>(null);
+  const formikRef =
+    useRef<FormikProps<PersonalFormElements | CorporateFormElements>>(null);
   const lastVehicleUsageTypeAnswerRef = useRef<string | undefined>(undefined);
   const lastInsuranceDateRef = {
     current: undefined as string | number | undefined,
   };
 
   useEffect(() => {
-    const productDetail = getSessionStorage<ProductDetail>("product");
+    if (userType === UserType.Corporate) {
+      setInitialValueState(corporateInitialValues);
+    }
+    if (userType === UserType.Personal) {
+      setInitialValueState(personalInitialValues);
+    }
+  }, [userType]);
 
-    const getUserInfo = async () => {
-      if (!uniqueId || uniqueId === "null") {
-        return undefined;
-      }
-
-      try {
-        const response = await getWithCustomBase<{ data: User }>(
-          `/upenerji/user?uniqueId=${uniqueId}`,
-          process.env.NEXT_PUBLIC_FINSURETEXT_API_URL ?? ""
-        );
-        const user = response.data;
-        if (!user) {
-          return undefined;
+  useEffect(() => {
+    const fetchUser = async () => {
+      const fetchedUser = await getUserInfo(uniqueId);
+      setUserInfo(fetchedUser);
+      if (fetchedUser) {
+        setCredentialsDetail(fetchedUser);
+        if (fetchedUser.VKN) {
+          setInitialValueState({ ...corporateInitialValues, ...fetchedUser });
+          setUserType(UserType.Corporate);
         }
-
-        const formattedUser = userToCredentials(user);
-        return formattedUser;
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-        return undefined;
+        if (fetchedUser.TCK) {
+          setInitialValueState({ ...personalInitialValues, ...fetchedUser });
+          setUserType(UserType.Personal);
+        }
       }
     };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const productDetail = getSessionStorage<ProductDetail>("product");
 
     const checkToken = async () => {
       const accessToken = Cookies.get(ACCESS_TOKEN);
@@ -110,14 +130,13 @@ function ProductForm() {
         newPoliceGuid,
         productDetail
       );
-      const fetchedUser = await getUserInfo();
 
-      await submitQuestions(fetchedQuestions, newPoliceGuid, fetchedUser);
+      await submitQuestions(fetchedQuestions, newPoliceGuid, userInfo);
       setPoliceGuid(newPoliceGuid);
     };
 
     checkToken();
-  }, []);
+  }, [userType]);
 
   async function autoAnswerQuestions(
     policeGuid: string,
@@ -144,13 +163,11 @@ function ProductForm() {
     policeGuid: string,
     credentials?: Credentials
   ) => {
-    if (credentials) {
-      setCredentialsDetail(credentials);
-    }
     const answerMapping: { [key: number]: string | null } = {
       49: "34",
       50: "1183",
       76: "BENZİN",
+      105: "1",
       21: today,
       22: oneYearLater,
       14: credentials?.TCK ?? null,
@@ -264,6 +281,7 @@ function ProductForm() {
     if (question.MASKE_TIP_ID === 3) {
       value = formatMaskedDate(value as string);
     }
+
     const updatedQuestions = await submitQuestionAnswer(
       policeGuid,
       question,
@@ -297,70 +315,87 @@ function ProductForm() {
       <div className="flex flex-col bg-white rounded-xl">
         <div>
           <Formik
-            initialValues={initialValues}
-            validationSchema={formValidation}
+            initialValues={initialValuesState}
+            validationSchema={
+              userType === UserType.Personal
+                ? personalFormValidation
+                : corporateFormValidation
+            }
             onSubmit={handleSendForm}
             enableReinitialize
             innerRef={formikRef}
           >
-            {({ errors, touched, setFieldValue, setFieldTouched }) => {
+            {({ errors, touched, setFieldValue }) => {
               return (
                 <Form autoComplete="off" className="p-5 md:p-10 !pb-5">
                   {questions.length > 0 ? (
-                    <div className="flex flex-col">
-                      {questions.map((question) => (
-                        <FormElement
-                          question={question}
-                          key={question.SIRA_NO}
-                          value={credentialsDetail[question.SORU_KOD]}
-                          onChange={(
-                            event: ChangeEvent<
-                              HTMLInputElement | HTMLSelectElement
-                            >
-                          ) => {
-                            handleAnswerChange(question, event, setFieldValue);
-                            setFieldTouched(question.SORU_KOD, true, false);
-                          }}
-                          error={
-                            typeof errors[
-                              question.SORU_KOD as keyof typeof errors
-                            ] === "string"
-                              ? (errors[
+                    <>
+                      <Toggle
+                        value={userType}
+                        onChange={(value: UserType) => setUserType(value)}
+                      />
+                      <div className="flex flex-col mt-5">
+                        {questions.map((question) => {
+                          if (!(question.SORU_KOD in initialValuesState))
+                            return null;
+                          return (
+                            <FormElement
+                              question={question}
+                              key={question.SIRA_NO}
+                              value={credentialsDetail[question.SORU_KOD]}
+                              onChange={(
+                                event: ChangeEvent<
+                                  HTMLInputElement | HTMLSelectElement
+                                >
+                              ) => {
+                                handleAnswerChange(
+                                  question,
+                                  event,
+                                  setFieldValue
+                                );
+                              }}
+                              error={
+                                typeof errors[
                                   question.SORU_KOD as keyof typeof errors
-                                ] as string)
-                              : ""
-                          }
-                          touched={
-                            touched[
-                              question.SORU_KOD as keyof typeof touched
-                            ] === true
-                          }
-                        />
-                      ))}
-                      <div className="flex flex-col items-center">
-                        {policeId && (
+                                ] === "string"
+                                  ? (errors[
+                                      question.SORU_KOD as keyof typeof errors
+                                    ] as string)
+                                  : ""
+                              }
+                              touched={
+                                touched[
+                                  question.SORU_KOD as keyof typeof touched
+                                ] === true
+                              }
+                            />
+                          );
+                        })}
+                        <div className="flex flex-col items-center">
+                          {policeId && (
+                            <CustomButton
+                              type="button"
+                              saturated={true}
+                              className="mb-2.5"
+                              onClick={goBackOffer}
+                              aria-label="Teklife Dön"
+                            >
+                              Teklife Dön
+                            </CustomButton>
+                          )}
                           <CustomButton
+                            onClick={() => {
+                              formikRef.current?.submitForm();
+                            }}
                             type="button"
-                            saturated={true}
                             className="mb-2.5"
-                            onClick={goBackOffer}
-                            aria-label="Teklife Dön"
+                            aria-label="Teklif Oluştur"
                           >
-                            Teklife Dön
+                            Teklif Oluştur
                           </CustomButton>
-                        )}
-                        <CustomButton
-                          onClick={() => {
-                            formikRef.current?.submitForm();
-                          }}
-                          type="button"
-                          className="mb-2.5"
-                          aria-label="Teklif Oluştur"
-                        >
-                          Teklif Oluştur
-                        </CustomButton>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   ) : (
                     <LoadingPlaceholder />
                   )}

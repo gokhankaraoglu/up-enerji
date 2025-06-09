@@ -43,6 +43,8 @@ const FormElement: React.FC<FormElementProps> = memo(
             onChange={onChange as (e: ChangeEvent<HTMLSelectElement>) => void}
             message={error}
             touched={touched}
+            disabled={false}
+            defaultValue={value}
           />
         );
       // case 5:

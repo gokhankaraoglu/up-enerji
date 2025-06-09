@@ -9,6 +9,8 @@ interface SelectProps {
   message?: string;
   touched?: boolean;
   className?: string;
+  disabled?: boolean;
+  defaultValue?: string;
 }
 
 function CustomSelect({
@@ -19,6 +21,8 @@ function CustomSelect({
   message = "",
   touched = false,
   className = "",
+  disabled = false,
+  defaultValue = "1",
 }: SelectProps) {
   return (
     <div className="select-wrapper">
@@ -34,6 +38,9 @@ function CustomSelect({
         name={id}
         required={true}
         onBlur={onChange}
+        disabled={disabled}
+        value={defaultValue}
+        onChange={onChange}
       >
         <option value="">Lütfen bir {name.toLocaleLowerCase()} seçiniz.</option>
         {options.map((option) => (

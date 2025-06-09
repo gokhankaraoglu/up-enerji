@@ -1,6 +1,3 @@
-/**
- * Renders input fields for various question types with strict typing and accessibility.
- */
 import React, { ChangeEvent, memo } from "react";
 import CustomInput, { InputType } from "./elements/CustomInput";
 
@@ -50,6 +47,18 @@ const InputSections: React.FC<InputSectionsProps> = memo(
             value={value}
             message={message}
             touched={touched}
+          />
+        );
+      case 15: // VERGİ KİMLİK NUMARASI
+        return (
+          <CustomInput
+            id={questionCode}
+            type={InputType.NUMBER}
+            name={questionName}
+            message={message}
+            touched={touched}
+            onChange={onChange}
+            value={value}
           />
         );
       case 42: // CEP TELEFONU

@@ -1,6 +1,3 @@
-/**
- * Renders select fields for various question types with strict typing and accessibility.
- */
 import React, { ChangeEvent, memo } from "react";
 import CustomSelect from "./elements/CustomSelect";
 
@@ -12,6 +9,8 @@ export interface SelectSectionsProps {
   onChange: (event: ChangeEvent<HTMLSelectElement>) => void;
   message: string;
   touched: boolean;
+  disabled?: boolean;
+  defaultValue?: string;
 }
 
 const SelectSections: React.FC<SelectSectionsProps> = memo(
@@ -23,6 +22,8 @@ const SelectSections: React.FC<SelectSectionsProps> = memo(
     onChange,
     message,
     touched,
+    disabled = false,
+    defaultValue,
   }) => {
     switch (questionID) {
       case 105: // PLAKA NO
@@ -34,6 +35,8 @@ const SelectSections: React.FC<SelectSectionsProps> = memo(
             onChange={onChange}
             message={message}
             touched={touched}
+            disabled={disabled}
+            defaultValue={defaultValue}
           />
         );
       default:

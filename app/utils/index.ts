@@ -122,13 +122,24 @@ export function convertToISODate(dateString: string): string | null {
 }
 
 export const userToCredentials = (user: User): Credentials => {
-  const phoneWithoutCountryCode = user.phoneNumber.startsWith("90")
+  const phoneWithoutCountryCode = user.phoneNumber?.startsWith("90")
     ? user.phoneNumber.substring(2)
     : user.phoneNumber;
-  return {
-    TCK: user.identityNumber,
-    DGMTAR: user.birthDate,
-    CEPTEL: phoneWithoutCountryCode,
-    EMAIL: user.email,
-  };
+
+  if (user.taxNumber) {
+    return {
+      VKN: user.taxNumber,
+      CEPTEL: phoneWithoutCountryCode,
+      EMAIL: user.email,
+    } as Credentials;
+  }
+  if (user.identityNumber) {
+    return {
+      TCK: user.identityNumber,
+      DGMTAR: user.birthDate,
+      CEPTEL: phoneWithoutCountryCode,
+      EMAIL: user.email,
+    } as Credentials;
+  }
+  return {} as Credentials;
 };
