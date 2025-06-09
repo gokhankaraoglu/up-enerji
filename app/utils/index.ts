@@ -136,7 +136,7 @@ export const userToCredentials = (user: User): Credentials => {
   if (user.identityNumber) {
     return {
       TCK: user.identityNumber,
-      DGMTAR: user.birthDate,
+      DGMTAR: user.birthDate || undefined,
       CEPTEL: phoneWithoutCountryCode,
       EMAIL: user.email,
     } as Credentials;
