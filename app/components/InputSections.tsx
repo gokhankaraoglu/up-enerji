@@ -86,16 +86,7 @@ const InputSections: React.FC<InputSectionsProps> = memo(
             touched={touched}
           />
         );
-      case 207: // IMEI NO
-        return (
-          <CustomInput
-            id={questionCode}
-            type={InputType.TEXT}
-            name={questionName}
-            information="Telefonunuzun cihaz ayarları bölümünde Genel>Hakkında alanında bulabilir ve kopyalayabilirsiniz."
-            onChange={onChange}
-          />
-        );
+
       case 197: // CİHAZ MARKA
       case 199: // MODEL
       case 200: // SERİ NO
@@ -116,7 +107,6 @@ const InputSections: React.FC<InputSectionsProps> = memo(
       case 205: // UZATILMIŞ GARANTİ
       case 206: // CİHAZ BEDELİ
       case 5: // PLAKA NO
-        // case 30: // BELGE SERİ NO
         return (
           <CustomInput
             id={questionCode}
@@ -125,6 +115,7 @@ const InputSections: React.FC<InputSectionsProps> = memo(
             onChange={onChange}
             message={message}
             touched={touched}
+            value={value ? value.toUpperCase() : value}
           />
         );
       default:
