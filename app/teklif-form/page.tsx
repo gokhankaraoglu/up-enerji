@@ -49,6 +49,7 @@ const corporateInitialValues: CorporateFormElements = {
   CEPTEL: "",
   EMAIL: "",
   PLK: "",
+  ARCKULTIP: "1",
 };
 
 function ProductForm() {
@@ -322,7 +323,7 @@ function ProductForm() {
             enableReinitialize
             innerRef={formikRef}
           >
-            {({ values, errors, touched, setFieldValue }) => {
+            {({ values, errors, touched, setFieldValue, isSubmitting }) => {
               return (
                 <Form autoComplete="off" className="p-5 md:p-10 !pb-5">
                   {questions.length > 0 ? (
@@ -384,6 +385,7 @@ function ProductForm() {
                               formikRef.current?.submitForm();
                             }}
                             type="button"
+                            disabled={isSubmitting}
                             className="mb-2.5"
                             aria-label="Teklif Oluştur"
                           >

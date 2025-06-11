@@ -2,7 +2,7 @@ import React from "react";
 
 export enum UserType {
   Personal = "bireysel",
-  Corporate = "kurumsal",
+  Corporate = "ticari",
 }
 
 interface ToggleProps {
@@ -40,7 +40,7 @@ const Toggle: React.FC<ToggleProps> = ({ value, onChange, className = "" }) => {
         onClick={() => onChange(UserType.Corporate)}
         aria-pressed={value === UserType.Corporate}
       >
-        Kurumsal
+        Ticari
       </button>
     </div>
   );
