@@ -18,6 +18,7 @@
   }
 
   .input-area {
+    width: 100%;
     height: var(--base-input-height);
     background-color: var(--base-input-background-color);
     border-radius: var(--base-input-border-radius);

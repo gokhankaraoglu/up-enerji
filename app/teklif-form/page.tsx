@@ -166,6 +166,7 @@ function ProductForm() {
       50: "1183",
       76: "BENZİN",
       105: "1",
+      106: "0",
       21: today,
       22: oneYearLater,
       14: credentials?.TCK ?? null,
