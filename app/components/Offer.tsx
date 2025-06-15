@@ -83,13 +83,13 @@ function Offer({
         <hr className="my-2 border-t-1 border-[#667085]" />
         {userVehicle && (
           <>
-            <div className="mb-3">
-              <p className="mb-2">{userVehicle.plate || "-"}</p>
-              <div className="flex gap-[3px] text-[#667085]">
-                <span>{userVehicle.year || "-"}</span>
-                <span>{userVehicle.brand || "-"}</span>
-                <span>{userVehicle.model || "-"}</span>
-              </div>
+            <div className="mb-3 text-black">
+              <p className="mb-1">{userVehicle.plate || "-"}</p>
+              <p className="text-left whitespace-normal break-words">
+                {[userVehicle.year, userVehicle.brand, userVehicle.model]
+                  .filter(Boolean)
+                  .join(" ") || "-"}
+              </p>
             </div>
             <hr className="my-2 border-t-1 border-[#667085]" />
           </>
