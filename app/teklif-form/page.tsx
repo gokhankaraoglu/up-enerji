@@ -29,12 +29,12 @@ import {
   corporateFormValidation,
   personalFormValidation,
 } from "../utils/validations";
-import { Credentials } from "../types";
 import React from "react";
 import LoadingPlaceholder from "../components/elements/LoadingPlaceholder";
 import { getDistrictCenterCode } from "../utils/cityDistrictCodes";
 import Toggle, { UserType } from "../components/elements/Toggle";
 import { getUserInfo } from "../utils/api/user";
+import { formatMaskedDate } from "../utils/api";
 
 const personalInitialValues: PersonalFormElements = {
   TCK: "",
@@ -65,7 +65,6 @@ function ProductForm() {
   const [policeGuid, setPoliceGuid] = useState<string>("");
   const [userType, setUserType] = useState(UserType.Personal);
 
-  const [userInfo, setUserInfo] = useState<Credentials | undefined>(undefined);
   const [initialValuesState, setInitialValueState] = useState<
     PersonalFormElements | CorporateFormElements
   >(personalInitialValues);
@@ -79,34 +78,14 @@ function ProductForm() {
   };
 
   useEffect(() => {
+    const productDetail = getSessionStorage<ProductDetail>("product");
+
     if (userType === UserType.Corporate) {
       setInitialValueState(corporateInitialValues);
     }
     if (userType === UserType.Personal) {
       setInitialValueState(personalInitialValues);
     }
-  }, [userType]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const fetchedUser = await getUserInfo(uniqueId);
-      setUserInfo(fetchedUser);
-      if (fetchedUser) {
-        if (fetchedUser.VKN) {
-          setInitialValueState({ ...corporateInitialValues, ...fetchedUser });
-          setUserType(UserType.Corporate);
-        }
-        if (fetchedUser.TCK) {
-          setInitialValueState({ ...personalInitialValues, ...fetchedUser });
-          setUserType(UserType.Personal);
-        }
-      }
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    const productDetail = getSessionStorage<ProductDetail>("product");
 
     const checkToken = async () => {
       const accessToken = Cookies.get(ACCESS_TOKEN);
@@ -129,12 +108,36 @@ function ProductForm() {
         productDetail
       );
 
-      await submitQuestions(fetchedQuestions, newPoliceGuid, userInfo);
+      await submitQuestions(fetchedQuestions, newPoliceGuid);
       setPoliceGuid(newPoliceGuid);
     };
 
     checkToken();
   }, [userType]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const fetchedUser = await getUserInfo(uniqueId);
+      if (fetchedUser) {
+        if (fetchedUser.VKN) {
+          setInitialValueState({ ...corporateInitialValues, ...fetchedUser });
+          setUserType(UserType.Corporate);
+        }
+        if (fetchedUser.TCK) {
+          setInitialValueState({ ...personalInitialValues, ...fetchedUser });
+          setUserType(UserType.Personal);
+
+          await autoAnswerQuestions(policeGuid, questions, {
+            14: fetchedUser?.TCK,
+            44: fetchedUser?.DGMTAR,
+            42: fetchedUser?.CEPTEL,
+            77: fetchedUser?.EMAIL,
+          });
+        }
+      }
+    };
+    fetchUser();
+  }, [policeGuid]);
 
   async function autoAnswerQuestions(
     policeGuid: string,
@@ -158,8 +161,7 @@ function ProductForm() {
 
   const submitQuestions = async (
     questions: SoruListItem[],
-    policeGuid: string,
-    credentials?: Credentials
+    policeGuid: string
   ) => {
     const answerMapping: { [key: number]: string | null } = {
       49: "34",
@@ -169,10 +171,6 @@ function ProductForm() {
       106: "0",
       21: today,
       22: oneYearLater,
-      14: credentials?.TCK ?? null,
-      44: credentials?.DGMTAR ?? null,
-      42: credentials?.CEPTEL ?? null,
-      77: credentials?.EMAIL ?? null,
     };
 
     await autoAnswerQuestions(policeGuid, questions, answerMapping);
@@ -208,11 +206,6 @@ function ProductForm() {
     await submitQuestionAnswerMethod(policeGuid, question, value);
 
     await handleSetCityasAuto();
-  }
-
-  function formatMaskedDate(value: string): string {
-    const [year, month, day] = value.split("-");
-    return `${day}/${month}/${year}`;
   }
 
   async function handleVehicleUsageType(updatedQuestions: SoruListItem[]) {
@@ -280,7 +273,6 @@ function ProductForm() {
     if (question.MASKE_TIP_ID === 3) {
       value = formatMaskedDate(value as string);
     }
-
     const updatedQuestions = await submitQuestionAnswer(
       policeGuid,
       question,

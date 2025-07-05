@@ -125,7 +125,7 @@ export const userToCredentials = (user: User): Credentials => {
   const phoneWithoutCountryCode = user.phoneNumber?.startsWith("90")
     ? user.phoneNumber.substring(2)
     : user.phoneNumber;
-
+  const isoBirthDate = convertToISODate(user.birthDate);
   if (user.taxNumber) {
     return {
       VKN: user.taxNumber,
@@ -136,7 +136,7 @@ export const userToCredentials = (user: User): Credentials => {
   if (user.identityNumber) {
     return {
       TCK: user.identityNumber,
-      DGMTAR: user.birthDate || undefined,
+      DGMTAR: isoBirthDate,
       CEPTEL: phoneWithoutCountryCode,
       EMAIL: user.email,
     } as Credentials;

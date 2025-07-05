@@ -33,3 +33,8 @@ export async function getWithCustomBase<R>(
   });
   return data;
 }
+
+export function formatMaskedDate(value: string): string {
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
