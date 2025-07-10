@@ -35,6 +35,7 @@ import { getDistrictCenterCode } from "../utils/cityDistrictCodes";
 import Toggle, { UserType } from "../components/elements/Toggle";
 import { getUserInfo } from "../utils/api/user";
 import { formatMaskedDate } from "../utils/api";
+import Loading from "../loading";
 
 const personalInitialValues: PersonalFormElements = {
   TCK: "",
@@ -64,6 +65,7 @@ function ProductForm() {
   const [questions, setQuestions] = useState<SoruListItem[]>([]);
   const [policeGuid, setPoliceGuid] = useState<string>("");
   const [userType, setUserType] = useState(UserType.Personal);
+  const [loading, setLoading] = useState(false);
 
   const [initialValuesState, setInitialValueState] = useState<
     PersonalFormElements | CorporateFormElements
@@ -273,15 +275,20 @@ function ProductForm() {
     if (question.MASKE_TIP_ID === 3) {
       value = formatMaskedDate(value as string);
     }
-    const updatedQuestions = await submitQuestionAnswer(
-      policeGuid,
-      question,
-      value
-    );
-    await handleVehicleUsageType(updatedQuestions);
-    await handleLastInsuranceDate(updatedQuestions);
-    setVehicleData(updatedQuestions);
-    setQuestions(updatedQuestions);
+    setLoading(true);
+    try {
+      const updatedQuestions = await submitQuestionAnswer(
+        policeGuid,
+        question,
+        value
+      );
+      await handleVehicleUsageType(updatedQuestions);
+      await handleLastInsuranceDate(updatedQuestions);
+      setVehicleData(updatedQuestions);
+      setQuestions(updatedQuestions);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSendForm() {
@@ -302,102 +309,105 @@ function ProductForm() {
   }
 
   return (
-    <div className="min-w-[375px] max-w-[450px] mb-4 mt-7">
-      <div className="flex flex-col bg-white rounded-xl">
-        <div>
-          <Formik
-            initialValues={initialValuesState}
-            validationSchema={
-              userType === UserType.Personal
-                ? personalFormValidation
-                : corporateFormValidation
-            }
-            onSubmit={handleSendForm}
-            enableReinitialize
-            innerRef={formikRef}
-          >
-            {({ values, errors, touched, setFieldValue, isSubmitting }) => {
-              return (
-                <Form autoComplete="off" className="p-5 md:p-10 !pb-5">
-                  {questions.length > 0 ? (
-                    <>
-                      <Toggle
-                        value={userType}
-                        onChange={(value: UserType) => setUserType(value)}
-                      />
-                      <div className="flex flex-col mt-5">
-                        {questions.map((question) => {
-                          if (!(question.SORU_KOD in initialValuesState))
-                            return null;
-                          return (
-                            <FormElement
-                              question={question}
-                              key={question.SIRA_NO}
-                              value={values[question.SORU_KOD]}
-                              onChange={(
-                                event: ChangeEvent<
-                                  HTMLInputElement | HTMLSelectElement
-                                >
-                              ) => {
-                                handleAnswerChange(
-                                  question,
-                                  event,
-                                  setFieldValue
-                                );
-                              }}
-                              error={
-                                typeof errors[
-                                  question.SORU_KOD as keyof typeof errors
-                                ] === "string"
-                                  ? (errors[
-                                      question.SORU_KOD as keyof typeof errors
-                                    ] as string)
-                                  : ""
-                              }
-                              touched={
-                                touched[
-                                  question.SORU_KOD as keyof typeof touched
-                                ] === true
-                              }
-                            />
-                          );
-                        })}
-                        <div className="flex flex-col items-center">
-                          {policeId && (
+    <>
+      {loading && <Loading />}
+      <div className="min-w-[375px] max-w-[450px] mb-4 mt-7">
+        <div className="flex flex-col bg-white rounded-xl">
+          <div>
+            <Formik
+              initialValues={initialValuesState}
+              validationSchema={
+                userType === UserType.Personal
+                  ? personalFormValidation
+                  : corporateFormValidation
+              }
+              onSubmit={handleSendForm}
+              enableReinitialize
+              innerRef={formikRef}
+            >
+              {({ values, errors, touched, setFieldValue, isSubmitting }) => {
+                return (
+                  <Form autoComplete="off" className="p-5 md:p-10 !pb-5">
+                    {questions.length > 0 ? (
+                      <>
+                        <Toggle
+                          value={userType}
+                          onChange={(value: UserType) => setUserType(value)}
+                        />
+                        <div className="flex flex-col mt-5">
+                          {questions.map((question) => {
+                            if (!(question.SORU_KOD in initialValuesState))
+                              return null;
+                            return (
+                              <FormElement
+                                question={question}
+                                key={question.SIRA_NO}
+                                value={values[question.SORU_KOD]}
+                                onChange={(
+                                  event: ChangeEvent<
+                                    HTMLInputElement | HTMLSelectElement
+                                  >
+                                ) => {
+                                  handleAnswerChange(
+                                    question,
+                                    event,
+                                    setFieldValue
+                                  );
+                                }}
+                                error={
+                                  typeof errors[
+                                    question.SORU_KOD as keyof typeof errors
+                                  ] === "string"
+                                    ? (errors[
+                                        question.SORU_KOD as keyof typeof errors
+                                      ] as string)
+                                    : ""
+                                }
+                                touched={
+                                  touched[
+                                    question.SORU_KOD as keyof typeof touched
+                                  ] === true
+                                }
+                              />
+                            );
+                          })}
+                          <div className="flex flex-col items-center">
+                            {policeId && (
+                              <CustomButton
+                                type="button"
+                                className="mb-2.5"
+                                onClick={goBackOffer}
+                                aria-label="Teklife Dön"
+                              >
+                                Teklife Dön
+                              </CustomButton>
+                            )}
                             <CustomButton
+                              onClick={() => {
+                                formikRef.current?.submitForm();
+                              }}
                               type="button"
+                              disabled={isSubmitting}
                               className="mb-2.5"
-                              onClick={goBackOffer}
-                              aria-label="Teklife Dön"
+                              aria-label="Teklif Oluştur"
                             >
-                              Teklife Dön
+                              Teklif Oluştur
                             </CustomButton>
-                          )}
-                          <CustomButton
-                            onClick={() => {
-                              formikRef.current?.submitForm();
-                            }}
-                            type="button"
-                            disabled={isSubmitting}
-                            className="mb-2.5"
-                            aria-label="Teklif Oluştur"
-                          >
-                            Teklif Oluştur
-                          </CustomButton>
+                          </div>
                         </div>
-                      </div>
-                    </>
-                  ) : (
-                    <LoadingPlaceholder />
-                  )}
-                </Form>
-              );
-            }}
-          </Formik>
+                      </>
+                    ) : (
+                      <LoadingPlaceholder />
+                    )}
+                  </Form>
+                );
+              }}
+            </Formik>
+          </div>
+          <Footer />
         </div>
-        <Footer />
       </div>
-    </div>
+    </>
   );
 }
 

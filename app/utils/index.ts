@@ -93,6 +93,7 @@ export const notifyAppLoadSuccess = ({
     );
   }
 };
+
 export const useToggle = (initialState = false) => {
   const [isOpen, setIsOpen] = useState(initialState);
 
