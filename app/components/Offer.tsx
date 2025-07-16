@@ -2,7 +2,12 @@
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { createExpirationDate, formatName, getSessionStorage } from "../utils";
+import {
+  createExpirationDate,
+  formatCurrency,
+  formatName,
+  getSessionStorage,
+} from "../utils";
 import { submitPolicyApprovalSecurePayment } from "../utils/api/payment";
 import { StoredPoliceItem } from "../types/product";
 import { GUID } from "../hooks/useSetGuid";
@@ -73,7 +78,7 @@ function Offer({
           <div className="ml-2.5 w-full">
             <div className="flex justify-between text-[#0F1827] text-sm font-medium align-middle md:align-top">
               <p>{formatName(title) ?? "-"}</p>
-              <p>₺{price ?? "-"}</p>
+              <p>{formatCurrency(price)}</p>
             </div>
             <p className="flex text-xs font-extralight text-[#667085]">
               {formatName(company)} güvencesiyle
@@ -139,7 +144,7 @@ function Offer({
                     htmlFor="declaration"
                     className="ml-2 text-xs font-extralight text-[#667085] cursor-pointer"
                   >
-                    Ödeme adımına geçmek için hasarsızlık beyanını kabul ediniz.
+                    Ödeme adımına geçmek için beyanı kabul ediniz.
                   </label>
                 </div>
                 <ErrorMessage

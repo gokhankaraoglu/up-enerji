@@ -5,7 +5,7 @@ import { contractText } from "../contracts";
 import Spinner from "./elements/Spinner";
 import Image from "next/image";
 import { EntegrasyonPoliceDurumID } from "../types/product";
-import { formatName, getSessionStorage } from "../utils";
+import { formatCurrency, formatName, getSessionStorage } from "../utils";
 
 interface OfferItemProps {
   company: string;
@@ -38,7 +38,7 @@ function OfferItem({ title, company, price, policeStatusId }: OfferItemProps) {
             <span className="text-base font-medium">{formatName(title)}</span>
             <span className="text-2xl font-bold  mt-1">
               {EntegrasyonPoliceDurumID.TEKLIF === policeStatusId ? (
-                <>₺{price?.toLocaleString("tr-TR")}</>
+                <p>{formatCurrency(price)}</p>
               ) : EntegrasyonPoliceDurumID.BEKLIYOR === policeStatusId ? (
                 <Spinner />
               ) : (

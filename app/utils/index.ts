@@ -144,3 +144,13 @@ export const userToCredentials = (user: User): Credentials => {
   }
   return {} as Credentials;
 };
+
+export const formatCurrency = (numericValue: number) => {
+  if (!numericValue) return "-";
+  return new Intl.NumberFormat("tr-TR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    style: "currency",
+    currency: "TRY",
+  }).format(numericValue);
+};

@@ -206,8 +206,9 @@ function ProductForm() {
     setFieldValue(question.SORU_KOD, value);
 
     await submitQuestionAnswerMethod(policeGuid, question, value);
-
-    await handleSetCityasAuto();
+    if (question.SORU_ID === 5) {
+      await handleSetCityasAuto(value);
+    }
   }
 
   async function handleVehicleUsageType(updatedQuestions: SoruListItem[]) {
@@ -255,11 +256,9 @@ function ProductForm() {
     }
   }
 
-  async function handleSetCityasAuto() {
-    const plate = questions.find((item) => item.SORU_ID === 5);
-    if (!plate?.DEGER_KOD) return;
-    const plateValue = (plate?.DEGER_KOD as string) || "";
-    const cityCodeStr = plateValue.substring(0, 2).replace(/^0+/, "");
+  async function handleSetCityasAuto(plate: string) {
+    if (!plate) return;
+    const cityCodeStr = plate.substring(0, 2).replace(/^0+/, "");
     await autoAnswerQuestions(policeGuid, questions, {
       49: cityCodeStr,
       50: getDistrictCenterCode(cityCodeStr) as string,
