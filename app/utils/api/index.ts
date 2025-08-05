@@ -34,6 +34,23 @@ export async function getWithCustomBase<R>(
   return data;
 }
 
+export async function postWithCustomBase<P, R>(
+  path: string,
+  baseURL: string,
+  payload: P
+): Promise<R> {
+  const accessToken = process.env.NEXT_PUBLIC_ACCESS_TOKEN;
+
+  const { data } = await axios.post<R>(path, payload, {
+    baseURL,
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    },
+  });
+  return data;
+}
+
 export function formatMaskedDate(value: string): string {
   const [year, month, day] = value.split("-");
   return `${day}/${month}/${year}`;

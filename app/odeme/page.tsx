@@ -10,6 +10,7 @@ import PaymentFailed from "../components/PaymentFailed";
 import PaymentSuccess from "../components/PaymentSuccess";
 import { getSessionStorage } from "../utils";
 import { StoredPoliceItem } from "../types/product";
+import { submitPaymentDetails } from "../utils/api/premium";
 
 function Payment() {
   const router = useRouter();
@@ -22,21 +23,22 @@ function Payment() {
 
   useEffect(() => {
     const handlePayment = async () => {
-      const policeGuid = Cookies.get(GUID);
+      const policyGuid = Cookies.get(GUID);
       const selectedPolice: StoredPoliceItem | undefined =
         getSessionStorage("selected-police");
+      const uniqueId = getSessionStorage<string>("uniqueId");
 
       if (!selectedPolice?.entegrationPoliceNo) {
         router.push("/");
         return;
       }
 
-      if (!policeGuid) {
+      if (!policyGuid || !uniqueId) {
         router.push("/");
         return;
       }
 
-      const payloadValueJSON = Cookies.get(policeGuid);
+      const payloadValueJSON = Cookies.get(policyGuid);
       if (!payloadValueJSON) {
         router.push("/");
         return;
@@ -49,6 +51,12 @@ function Payment() {
         entegrationId,
         transactionId
       );
+      if (Success) {
+        submitPaymentDetails({
+          uniqueId,
+          policyGuid,
+        });
+      }
 
       setPaymentStatus(Success);
       setRedirectUrl(redirectUrl);

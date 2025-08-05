@@ -13,7 +13,7 @@ import {
 } from "../utils";
 import { setGuid } from "../hooks/useSetGuid";
 import { SoruListItem } from "../types/question";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ProductDetail } from "../types/product";
 import {
   fetchProductQuestions,
@@ -55,8 +55,7 @@ const corporateInitialValues: CorporateFormElements = {
 
 function ProductForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const uniqueId = searchParams.get("uniqueId") || null;
+  const uniqueId = getSessionStorage<string>("uniqueId") || null;
   const today = new Date().toLocaleDateString("en-CA");
   const nextYear = new Date();
   nextYear.setFullYear(nextYear.getFullYear() + 1);
