@@ -43,30 +43,31 @@ function Offer({
   const [showInformationForm, setShowInformationForm] = useState(false);
 
   async function handleSendForm() {
+    const policeGuid: string | undefined = Cookies.get(GUID);
     const expirationDate = createExpirationDate(6);
+
     if (setIsProcessing) {
       setIsProcessing(true);
     }
     const locationUrl = window.location.href;
     const baseURL = new URL(locationUrl).origin;
 
-    const { REDIRECT_URL, TRANSACTION_ID: transactionId } =
-      await submitPolicyApprovalSecurePayment(
-        entegrationId,
-        null,
-        `${baseURL}/odeme/geri-donus`
-      );
-    const policeGuid: string | undefined = Cookies.get(GUID);
+    const { redirectUrl } = await submitPolicyApprovalSecurePayment({
+      integrationPolicyMovementId: entegrationId,
+      installment: null,
+      callbackUrl: `${baseURL}/odeme/geri-donus`,
+      policyGUID: policeGuid || "",
+    });
     if (!policeGuid) {
       router.push("/teklif-form");
       return;
     }
 
-    if (REDIRECT_URL) {
-      const payloadValue = [entegrationId, transactionId, REDIRECT_URL];
+    if (redirectUrl) {
+      const payloadValue = [redirectUrl];
       const payloadValueJSON = JSON.stringify(payloadValue);
       Cookies.set(policeGuid, payloadValueJSON, { expires: expirationDate });
-      window.location.href = REDIRECT_URL;
+      window.location.href = redirectUrl;
     }
   }
 

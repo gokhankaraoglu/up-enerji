@@ -17,6 +17,7 @@ export interface Data {
 
 export interface ApiResponse<T> {
   Data: T;
+  data: T;
   Message: string | null;
   Status: number;
 }

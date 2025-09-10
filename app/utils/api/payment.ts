@@ -1,57 +1,34 @@
 import { ApiResponse } from "@/app/types";
-import { post } from ".";
+import { getWithCustomBase, postWithCustomBase } from ".";
 import { PaymentData, TransactionData } from "@/app/types/payment";
-import { Paths } from "@/app/types/constants";
 
 export interface PolicyApprovalBeforePayload {
-  ENTEGRASYON_POLICE_HAREKET_ID: number;
-  TAKSIT_KOD: string | null;
-  CALLBACK_URL: string | null;
-}
-
-export interface PolicyApprovalAfterPayload {
-  ENTEGRASYON_POLICE_HAREKET_ID: number;
-  TRANSACTION_ID: string;
-  ACIKLAMA: string | null;
-  TRANSACTION_LOG: string | null;
+  integrationPolicyMovementId: number;
+  installment: string | null;
+  callbackUrl: string;
+  policyGUID: string;
 }
 
 export async function submitPolicyApprovalSecurePayment(
-  hareketId: number,
-  taksitKod: string | null = null,
-  callbackUrl: string | null = null
+  paymentPayload: PolicyApprovalBeforePayload
 ): Promise<TransactionData> {
-  const response = await post<
+  const response = await postWithCustomBase<
     PolicyApprovalBeforePayload,
-    ApiResponse<TransactionData>
-  >({
-    path: Paths.PolicyApprovalSecurePaymentBefore,
-    payload: {
-      ENTEGRASYON_POLICE_HAREKET_ID: hareketId,
-      TAKSIT_KOD: taksitKod,
-      CALLBACK_URL: callbackUrl,
-    },
-  });
-  return response?.Data;
+    { data: ApiResponse<TransactionData> }
+  >(
+    "upenerji/payment/create",
+    process.env.NEXT_PUBLIC_FINSURETEXT_API_URL ?? "",
+    paymentPayload
+  );
+  return response?.data?.data;
 }
 
 export async function submitPolicyApprovalSecurePaymentAfter(
-  hareketId: number,
-  transactionId: string,
-  description: string | null = null,
-  transactionLog: string | null = null
+  policyGuid: string
 ): Promise<PaymentData> {
-  const response = await post<
-    PolicyApprovalAfterPayload,
-    ApiResponse<PaymentData>
-  >({
-    path: Paths.PolicyApprovalSecurePaymentAfter,
-    payload: {
-      ENTEGRASYON_POLICE_HAREKET_ID: hareketId,
-      TRANSACTION_ID: transactionId,
-      ACIKLAMA: description,
-      TRANSACTION_LOG: transactionLog,
-    },
-  });
-  return response?.Data;
+  const response = await getWithCustomBase<{ data: ApiResponse<PaymentData> }>(
+    `/upenerji/payment/verify/${policyGuid}`,
+    process.env.NEXT_PUBLIC_FINSURETEXT_API_URL ?? ""
+  );
+  return response?.data?.data;
 }

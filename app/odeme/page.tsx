@@ -45,20 +45,23 @@ function Payment() {
       }
 
       const payloadValue = JSON.parse(payloadValueJSON);
-      const [entegrationId, transactionId, redirectUrl] = payloadValue;
+      const [redirectUrl] = payloadValue;
 
-      const { Success } = await submitPolicyApprovalSecurePaymentAfter(
-        entegrationId,
-        transactionId
-      );
-      if (Success) {
+      let success = false;
+      try {
+        const result = await submitPolicyApprovalSecurePaymentAfter(policyGuid);
+        success = result?.success ?? false;
+      } catch {
+        success = false;
+      }
+      if (success) {
         submitPaymentDetails({
           uniqueId,
           policyGuid,
         });
       }
 
-      setPaymentStatus(Success);
+      setPaymentStatus(success);
       setRedirectUrl(redirectUrl);
       setSelectedPolice(selectedPolice);
       setLoading(false);

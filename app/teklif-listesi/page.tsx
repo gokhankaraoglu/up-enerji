@@ -55,9 +55,6 @@ function OfferList() {
       startDate: offer.BASLAMA_TARIH,
       endDate: offer.BITIS_TARIH,
       price: offer.TOPLAM_PRIM,
-      model: offer.MARKA_TIP_AD,
-      brand: offer.MARKA_AD,
-      deviceValue: offer.CIHAZ_BEDEL,
     });
     router.push("/sigorta-teklifi");
   };
