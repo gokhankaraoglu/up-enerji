@@ -33,7 +33,7 @@ function Payment() {
         return;
       }
 
-      if (!policyGuid || !uniqueId) {
+      if (!policyGuid) {
         router.push("/");
         return;
       }
@@ -56,7 +56,7 @@ function Payment() {
       }
       if (success) {
         submitPaymentDetails({
-          uniqueId,
+          uniqueId: uniqueId ?? "-",
           policyGuid,
         });
       }

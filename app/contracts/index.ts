@@ -1,9 +1,9 @@
 export const contractText = [
   {
-    title: "İMM: 2.500.000 TL (Değiştirilebilir)",
+    title: "İMM: 5.000.000 TL (Değiştirilebilir)",
     icon: "frame-money.png",
     description:
-      "Kaza durumunda, Zorunlu Trafik Sigortası karşı tarafta oluşan hasardan araç başına 200 bin TL, kaza başına toplam 200 bin TL'lik üst limite karşı koruma sağlar. Masraflar teminat limitlerince (bu poliçede 2.500.000 TL) karşılanır.",
+      "Kaza durumunda, Zorunlu Trafik Sigortası karşı tarafta oluşan hasardan araç başına 200 bin TL, kaza başına toplam 200 bin TL'lik üst limite karşı koruma sağlar. Masraflar teminat limitlerince (bu poliçede 5.000.000 TL) karşılanır.",
   },
   {
     title: "Muadil Cam (Muafiyetli)",

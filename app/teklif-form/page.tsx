@@ -119,26 +119,25 @@ function ProductForm() {
   useEffect(() => {
     const fetchUser = async () => {
       const fetchedUser = await getUserInfo(uniqueId);
-      if (fetchedUser) {
-        if (fetchedUser.VKN) {
-          setInitialValueState({ ...corporateInitialValues, ...fetchedUser });
-          setUserType(UserType.Corporate);
-        }
-        if (fetchedUser.TCK) {
-          setInitialValueState({ ...personalInitialValues, ...fetchedUser });
-          setUserType(UserType.Personal);
 
-          await autoAnswerQuestions(policeGuid, questions, {
-            14: fetchedUser?.TCK,
-            44: fetchedUser?.DGMTAR,
-            42: fetchedUser?.CEPTEL,
-            77: fetchedUser?.EMAIL,
-          });
-        }
+      if (fetchedUser?.VKN) {
+        setInitialValueState({ ...corporateInitialValues, ...fetchedUser });
+        setUserType(UserType.Corporate);
+      }
+      if (fetchedUser?.TCK) {
+        setInitialValueState({ ...personalInitialValues, ...fetchedUser });
+        setUserType(UserType.Personal);
+
+        await autoAnswerQuestions(policeGuid, questions, {
+          14: fetchedUser?.TCK,
+          44: fetchedUser?.DGMTAR,
+          42: fetchedUser?.CEPTEL,
+          77: fetchedUser?.EMAIL,
+        });
       }
     };
     fetchUser();
-  }, [policeGuid]);
+  }, []);
 
   async function autoAnswerQuestions(
     policeGuid: string,
